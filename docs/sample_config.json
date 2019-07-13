@@ -1,0 +1,61 @@
+{
+    "translations": [
+        {
+            "category": "CampM",
+            "mandatory": "CampaignManager",
+            "pattern": "vEnterStateRunning",
+            "print": "CampaignManager -> Ctrl : Ctrl",
+            "variables": []
+        }
+        {
+            "category": "Basic",
+            "mandatory": "updateProgressTextItem() newVal=",
+            "pattern": "Download Error, Error Type = ",
+            "print": "Ctrl -> Ctrl : Update error",
+            "variables": [
+                {
+                    "startswith": "Type = '",
+                    "endswith": "' \\[f"
+                }
+            ]
+        }
+    ],
+    "wrap_text_pre": [
+        "@startuml"
+    ],
+    "wrap_text_post": [
+        "@enduml"
+    ],
+    "blacklist": [
+        "ScomoPhase:2",
+        "ScomoPhase:AWAITING_SOFTWARE",
+        "ScomoPhase:AWAITING_ADDITIONAL"
+    ],
+    "delete_lines": [
+        "unregister_context ok",
+        "_FAT:XmlItemBase",
+        "Chain():add",
+        "ConfigItem.*get",
+        "CSMPROXY_US",
+        "HMI_COURIER",
+        "\\[swu_msg",
+    ],
+    "replace_words": {
+    	"<gen3flex@dlt>(core0)": ""
+    },
+    "generate_uml": [
+        "java",
+        "-DPLANTUML_LIMIT_SIZE=16384",
+        "-jar",
+        "plantuml.jar",
+        "-config",
+        "config.txt",
+        "${fileDirname}/${fileBasenameNoExtension}_seq.txt"
+    ],
+    "file": {
+        "backup": "${fileDirname}/${fileBasenameNoExtension}.original",
+        "translation": "${fileDirname}/${fileBasenameNoExtension}_seq.txt"
+    },
+    "backup_file": "${fileDirname}/${fileBasenameNoExtension}.original",
+    "translated_uml_file": "${fileDirname}/${fileBasenameNoExtension}_seq.txt"
+}
