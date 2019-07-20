@@ -10,7 +10,7 @@ void printHelp()
 {
    std::cout << "\n"
                 "Logalizer\n"
-                "  Filter and Translate a trace log to a meaningful format.\n"
+                "  Filter and translate a trace log to a meaningful format.\n"
                 "  Logesh Gopalakrishnan\n\n"
                 "Usage:\n"
                 "  logalizer -c <config> -f <log>\n"

@@ -113,7 +113,7 @@ void getReplacedLine(std::string const &line, std::vector<variable> const &varia
    }
 }
 
-bool matchTranslation(std::string const &line, ConfigParser const *data, std::string &translation)
+auto matchTranslation(std::string const &line, ConfigParser const *data, std::string &translation)
 {
    auto found = std::find_if(cbegin(data->getTranslations()), cend(data->getTranslations()),
                              [&line](auto const &tr) { return tr.in(line); });
@@ -123,11 +123,11 @@ bool matchTranslation(std::string const &line, ConfigParser const *data, std::st
       if (!blacklisted) {
          translation = found->print;
          getReplacedLine(line, found->variables, &translation);
-         return true;
+         return found;
       }
    }
 
-   return false;
+   return found;
 }
 
 [[nodiscard]] bool isLineDeleted(std::string const &line, std::vector<std::string> const &delete_lines,
@@ -155,9 +155,9 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
    std::ifstream trace_file(trace_file_name);
    std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
-   std::ofstream translation_file(translation_file_name);
+   std::vector<std::string> translations;
    for (auto const &line : data->getWrapTextPre()) {
-      translation_file << line << '\n';
+      translations.emplace_back(line);
    }
 
    for (std::string line; getline(trace_file, line);) {
@@ -168,16 +168,29 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
       replaceWords(&line, data->getReplaceWords());
 
       trimmed_file << line << '\n';
-
-      if (std::string translation; matchTranslation(line, data, translation)) {
-         translation_file << translation << '\n';
+      std::string translation;
+      bool add_translation = false;
+      auto found = matchTranslation(line, data, translation);
+      if (found != cend(data->getTranslations())) {
+         if (found->repeat == false) {
+            add_translation = std::none_of(cbegin(translations), cend(translations),
+                                           [&translation](auto const &entry) { return entry == translation; });
+         }
+         else {
+            add_translation = true;
+         }
       }
+      if (add_translation) translations.emplace_back(translation);
    }
 
    for (auto const &line : data->getWrapTextPost()) {
-      translation_file << line << '\n';
+      translations.emplace_back(line);
    }
 
+   std::ofstream translation_file(translation_file_name);
+   for (auto const &line : translations) {
+      translation_file << line << '\n';
+   }
    translation_file.close();
    trimmed_file.close();
    trace_file.close();

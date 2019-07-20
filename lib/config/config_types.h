@@ -18,31 +18,11 @@ struct translation {
    std::vector<std::string> patterns;
    std::string print;
    std::vector<variable> variables;
-   translation()
-   {
-      //      std::puts("translation()");
-   }
-   translation(std::string categoryl, std::vector<std::string> patternsl, std::string printl,
-               std::vector<variable> variablesl)
-   {
-      //      std::puts("translation(....)");
-      category = std::move(categoryl);
-      patterns = std::move(patternsl);
-      print = std::move(printl);
-      variables = std::move(variablesl);
-   }
-   translation(translation&& trans)
-   {
-      //      std::puts("translation(&&)");
-      category = std::move(trans.category);
-      patterns = std::move(trans.patterns);
-      print = std::move(trans.print);
-      variables = std::move(trans.variables);
-   }
+   bool repeat = true;
 
-   [[nodiscard]] bool in(std::string const& line) const
+   [[nodiscard]] bool in(std::string const &line) const
    {
-      auto matches = [&line](auto const& pattern) {
+      auto matches = [&line](auto const &pattern) {
          if (line.find(pattern) != std::string::npos)
             return true;
          else

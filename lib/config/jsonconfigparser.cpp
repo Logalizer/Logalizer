@@ -72,35 +72,9 @@ std::vector<translation> loadTranslations(json const &config, std::string const 
       tr.category = entry["category"];
       tr.patterns = loadArray(entry, "patterns");
       tr.print = entry["print"];
+      tr.repeat = (entry["repeat"] == "false") ? false : true;
       tr.variables = getVariables(entry["variables"]);
       translations.push_back(std::move(tr));
-   }
-   return translations;
-}
-
-std::vector<translation> loadTranslations_emplace(json const &config, std::string const &name,
-                                                  std::vector<std::string> disabled_categories)
-{
-   std::vector<translation> translations;
-
-   json j_tr = getValue<json>(config, name);
-
-   for (auto &[key, value] : j_tr.items()) {
-      // key : 0, 1, 2...
-      // value {tranlation_element1, tranlation_element2, ...}
-
-      json entry = value;
-      std::string category = entry["category"];
-
-      bool is_disabled =
-          std::any_of(cbegin(disabled_categories), cend(disabled_categories), [&category](auto const &dCategory) {
-             if (category == dCategory) return true;
-             return false;
-          });
-      if (is_disabled) continue;
-
-      translations.emplace_back(entry["category"], loadArray(entry, "patterns"), entry["print"],
-                                getVariables(entry["variables"]));
    }
    return translations;
 }
@@ -137,7 +111,7 @@ JsonConfigParser::~JsonConfigParser()
 void JsonConfigParser::loadTranslations()
 {
    disabled_categories_ = details::loadArray(config_, TAG_DISABLE_CATEGORY);
-   translations_ = details::loadTranslations_emplace(config_, TAG_TRANSLATIONS, disabled_categories_);
+   translations_ = details::loadTranslations(config_, TAG_TRANSLATIONS, disabled_categories_);
 }
 
 void JsonConfigParser::loadWrapText()
@@ -174,6 +148,7 @@ void JsonConfigParser::loadDeleteLines()
       }
    }
 }
+
 void JsonConfigParser::loadReplaceWords()
 {
    json j_tr = details::getValue<json>(config_, TAG_REPLACE_WORDS);
