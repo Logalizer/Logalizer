@@ -187,6 +187,7 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
       translations.emplace_back(line);
    }
 
+   Logalizer::Config::Utils::mkdir(Logalizer::Config::Utils::getDirFile(translation_file_name).first);
    std::ofstream translation_file(translation_file_name);
    for (auto const &line : translations) {
       translation_file << line << '\n';

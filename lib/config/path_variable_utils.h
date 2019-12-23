@@ -11,4 +11,5 @@ void findAndReplace(std::string *input, std::string const &token, std::string co
 
 void replaceStringVariables(std::string *input, std::string const &dir, std::string const &file);
 
+void mkdir(std::string path);
 }  // namespace Logalizer::Config::Utils

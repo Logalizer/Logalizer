@@ -169,6 +169,7 @@ void backupIfNotExists(std::string original, std::string backup)
 {
    if (original.empty() || backup.empty()) return;
 
+   Logalizer::Config::Utils::mkdir(Logalizer::Config::Utils::getDirFile(backup).first);
    if (struct stat my_stat; stat(backup.c_str(), &my_stat) != 0) {
       std::ifstream src(original, std::ios::binary);
       std::ofstream dst(backup, std::ios::binary);
