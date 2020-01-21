@@ -12,10 +12,10 @@ ConfigParser::ConfigParser(std::string config_file) : config_file_{std::move(con
 void ConfigParser::updateRelativePaths(std::string const &log_file)
 {
    using namespace Utils;
-   std::pair<std::string, std::string> dirfile = getDirFile(log_file);
-   replaceStringVariables(&generate_uml_command_, dirfile.first, dirfile.second);
+   auto [dir, file] = getDirFile(log_file);
+   replaceStringVariables(&generate_uml_command_, dir, file);
 
-   replaceStringVariables(&backup_file_, dirfile.first, dirfile.second);
-   replaceStringVariables(&uml_file_, dirfile.first, dirfile.second);
+   replaceStringVariables(&backup_file_, dir, file);
+   replaceStringVariables(&uml_file_, dir, file);
 }
 }  // namespace Logalizer::Config

@@ -149,8 +149,8 @@ std::pair<std::string, std::string> getCmdLineArgs(std::vector<std::string_view>
       printHelp();
       exit(0);
    }
-   auto dirfile = Logalizer::Config::Utils::getDirFile(args.at(0).data());
-   if (chdir(dirfile.first.c_str())) std::cerr << "Could not change directory to " << dirfile.first;
+   auto [dir,dummy] = Logalizer::Config::Utils::getDirFile(args.at(0).data());
+   if (chdir(dir.c_str())) std::cerr << "Could not change directory to " << dir;
    if (config_file.empty()) config_file = "config.json";
    if (struct stat my_stat; stat(config_file.c_str(), &my_stat) != 0) {
       std::cerr << config_file << " config file not available\n\n";
@@ -180,13 +180,9 @@ void backupIfNotExists(std::string original, std::string backup)
 int main(int argc, char **argv)
 {
    std::vector<std::string_view> args(argv, argv + argc);
-   std::pair<std::string, std::string> files = getCmdLineArgs(args);
-   std::string config_file = files.first;
-   std::string log_file = files.second;
-
+   auto [config_file, log_file] = getCmdLineArgs(args);
    auto start = std::chrono::high_resolution_clock::now();
-   std::unique_ptr<Logalizer::Config::ConfigParser> p =
-       std::make_unique<Logalizer::Config::JsonConfigParser>(config_file);
+   auto p = std::make_unique<Logalizer::Config::JsonConfigParser>(config_file);
    p->loadConfigFile();
    p->loadAllConfigurations();
    auto end = std::chrono::high_resolution_clock::now();
