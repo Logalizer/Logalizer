@@ -1,4 +1,5 @@
 #include "path_variable_utils.h"
+#include <sys/stat.h>
 
 namespace Logalizer::Config::Utils {
 
@@ -46,6 +47,9 @@ void replaceStringVariables(std::string *input, std::string const &dir, std::str
 
 void mkdir(std::string path)
 {
+   if (struct stat my_stat; stat(path.c_str(), &my_stat) == 0) {
+      return;
+   }
    #ifdef _WIN32
       findAndReplace(&path, "/", "");
       system((std::string("mkdir ") + path).c_str());
