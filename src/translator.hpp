@@ -83,12 +83,12 @@ std::vector<std::string> getVariableValues(std::string const &line, std::vector<
    return value;
 }
 
-void getReplacedLine(std::string const &line, std::vector<variable> const &variables, std::string *replacement)
+std::string fillVariableValues(std::string const &line, std::vector<variable> const &variables, std::string line_to_fill)
 {
    std::vector<std::string> v = getVariableValues(line, variables);
 
    bool formatted_print = false;
-   if (replacement->find("${1}") != std::string::npos) {
+   if (line_to_fill.find("${1}") != std::string::npos) {
       formatted_print = true;
    }
 
@@ -96,7 +96,7 @@ void getReplacedLine(std::string const &line, std::vector<variable> const &varia
       int i = 1;
       for (auto entry : v) {
          std::string token = "${" + std::to_string(i++) + "}";
-         Logalizer::Config::Utils::findAndReplace(replacement, token, entry);
+         Logalizer::Config::Utils::findAndReplace(&line_to_fill, token, entry);
       }
    }
    else if (v.size()) {
@@ -109,11 +109,12 @@ void getReplacedLine(std::string const &line, std::vector<variable> const &varia
       }
 
       params += ")";
-      replacement->append(params);
+      line_to_fill.append(params);
    }
+   return line_to_fill;
 }
 
-auto matchTranslation(std::string const &line, ConfigParser const *data, std::string &translation)
+auto matchTranslation(std::string const &line, ConfigParser const *data)
 {
    auto found = std::find_if(cbegin(data->getTranslations()), cend(data->getTranslations()),
                              [&line](auto const &tr) { return tr.in(line); });
@@ -121,8 +122,6 @@ auto matchTranslation(std::string const &line, ConfigParser const *data, std::st
       bool blacklisted = std::any_of(cbegin(data->getBlacklists()), cend(data->getBlacklists()),
                                      [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
       if (!blacklisted) {
-         translation = found->print;
-         getReplacedLine(line, found->variables, &translation);
          return found;
       }
    }
@@ -150,39 +149,36 @@ void replaceWords(std::string *line, std::vector<replacement> const &replacemnet
 }
 
 void createTranslationFile(std::string const &trace_file_name, std::string const &translation_file_name,
-                           ConfigParser const *data)
+                           ConfigParser const *parser)
 {
    std::ifstream trace_file(trace_file_name);
    std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    std::vector<std::string> translations;
 
-   auto pre_text = data->getWrapTextPre();
+   auto pre_text = parser->getWrapTextPre();
    std::copy(pre_text.begin(), pre_text.end(), std::back_inserter(translations));
 
    for (std::string line; getline(trace_file, line);) {
-      if (isLineDeleted(line, data->getDeleteLines(), data->getDeleteLinesRegex())) {
+      if (isLineDeleted(line, parser->getDeleteLines(), parser->getDeleteLinesRegex())) {
          continue;
       }
 
-      replaceWords(&line, data->getReplaceWords());
+      replaceWords(&line, parser->getReplaceWords());
       trimmed_file << line << '\n';
 
-      std::string translation;
-      bool add_translation = false;
-      auto found = matchTranslation(line, data, translation);
-      if (found != cend(data->getTranslations())) {
-         if (found->repeat == false) {
-            add_translation = std::none_of(cbegin(translations), cend(translations),
-                                           [&translation](auto const &entry) { return entry == translation; });
-         }
-         else {
-            add_translation = true;
+      auto found = matchTranslation(line, parser);
+      if (found != cend(parser->getTranslations())) {
+         bool repeat_allowed = found->repeat;
+         std::string translation = fillVariableValues(line, found->variables, found->print);
+         bool new_entry = std::none_of(cbegin(translations), cend(translations),
+                                       [&translation](auto const &entry) { return entry == translation; });
+         if (repeat_allowed || new_entry) {
+            translations.emplace_back(translation);
          }
       }
-      if (add_translation) translations.emplace_back(translation);
    }
-   auto post_text = data->getWrapTextPost();
+   auto post_text = parser->getWrapTextPost();
    std::copy(post_text.begin(), post_text.end(), std::back_inserter(translations));
 
    Logalizer::Config::Utils::mkdir(Logalizer::Config::Utils::getDirFile(translation_file_name).first);
