@@ -156,9 +156,9 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
    std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    std::vector<std::string> translations;
-   for (auto const &line : data->getWrapTextPre()) {
-      translations.emplace_back(line);
-   }
+
+   auto pre_text = data->getWrapTextPre();
+   std::copy(pre_text.begin(), pre_text.end(), std::back_inserter(translations));
 
    for (std::string line; getline(trace_file, line);) {
       if (isLineDeleted(line, data->getDeleteLines(), data->getDeleteLinesRegex())) {
@@ -166,8 +166,8 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
       }
 
       replaceWords(&line, data->getReplaceWords());
-
       trimmed_file << line << '\n';
+
       std::string translation;
       bool add_translation = false;
       auto found = matchTranslation(line, data, translation);
@@ -182,17 +182,15 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
       }
       if (add_translation) translations.emplace_back(translation);
    }
-
-   for (auto const &line : data->getWrapTextPost()) {
-      translations.emplace_back(line);
-   }
+   auto post_text = data->getWrapTextPost();
+   std::copy(post_text.begin(), post_text.end(), std::back_inserter(translations));
 
    Logalizer::Config::Utils::mkdir(Logalizer::Config::Utils::getDirFile(translation_file_name).first);
+
    std::ofstream translation_file(translation_file_name);
-   for (auto const &line : translations) {
-      translation_file << line << '\n';
-   }
+   std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file, "\n"));
    translation_file.close();
+
    trimmed_file.close();
    trace_file.close();
    remove(trace_file_name.c_str());
