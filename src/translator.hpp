@@ -67,23 +67,28 @@ std::vector<std::string> getVariableValues(std::string const &line, std::vector<
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
 
-   for (auto const &v : variables) {
-      auto start_point = line.find(v.startswith);
-      if (start_point == std::string::npos) continue;
+   auto capture_values = [](auto const &v, auto const &content) -> std::string {
+      auto start_point = content.find(v.startswith);
+      if (start_point == std::string::npos) return " ";
 
       start_point += v.startswith.size();
-      auto end_point = line.find(v.endswith, start_point);
-      if (end_point == std::string::npos) continue;
+      auto end_point = content.find(v.endswith, start_point);
+      if (end_point == std::string::npos) return " ";
 
-      std::string capture(line.begin() + static_cast<long>(start_point), line.begin() + static_cast<long>(end_point));
+      std::string capture(content.begin() + static_cast<long>(start_point),
+                          content.begin() + static_cast<long>(end_point));
 
-      value.push_back(std::move(capture));
-   }
+      return capture;
+   };
+
+   std::transform(begin(variables), end(variables), std::back_inserter(value),
+                  std::bind(capture_values, std::placeholders::_1, line));
 
    return value;
 }
 
-std::string fillVariableValues(std::string const &line, std::vector<variable> const &variables, std::string line_to_fill)
+std::string fillVariableValues(std::string const &line, std::vector<variable> const &variables,
+                               std::string line_to_fill)
 {
    std::vector<std::string> v = getVariableValues(line, variables);
 
