@@ -50,13 +50,13 @@ void mkdir(std::string path)
    if (struct stat my_stat; stat(path.c_str(), &my_stat) == 0) {
       return;
    }
-   #ifdef _WIN32
-      findAndReplace(&path, "/", "");
-      system((std::string("mkdir ") + path).c_str());
-   #else
-      findAndReplace(&path, "\\", "");
-      system((std::string("mkdir -p ") + path).c_str());
-   #endif
+#ifdef _WIN32
+   findAndReplace(&path, "/", "");
+   system((std::string("mkdir \"") + path + "\"").c_str());
+#else
+   findAndReplace(&path, "\\", "");
+   system((std::string("mkdir -p \"") + path + "\"").c_str());
+#endif
 }
 
 }  // namespace Logalizer::Config::Utils
