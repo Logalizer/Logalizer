@@ -122,7 +122,7 @@ void printConfigHelp()
 )";
 }
 
-std::pair<std::string, std::string> getCmdLineArgs(std::vector<std::string_view> &args)
+std::pair<std::string, std::string> getCmdLineArgs(const std::vector<std::string_view> &args)
 {
    std::string log_file, config_file;
    for (auto it = cbegin(args), endit = cend(args); it != endit; ++it) {
