@@ -87,34 +87,30 @@ std::vector<std::string> getVariableValues(std::string const &line, std::vector<
    return value;
 }
 
+std::string pack_parameters(std::vector<std::string> const &v)
+{
+   auto comma_fold = [](std::string a, std::string b) { return a + ", " + b; };
+   std::string params = std::accumulate(next(begin(v)), end(v), std::string("(") + v[0], comma_fold);
+   params += ")";
+   return params;
+}
+
 std::string fillVariableValues(std::string const &line, std::vector<variable> const &variables,
                                std::string line_to_fill)
 {
-   std::vector<std::string> v = getVariableValues(line, variables);
+   std::vector<std::string> values = getVariableValues(line, variables);
 
-   bool formatted_print = false;
-   if (line_to_fill.find("${1}") != std::string::npos) {
-      formatted_print = true;
-   }
+   bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
 
    if (formatted_print) {
       int i = 1;
-      for (auto entry : v) {
+      for (auto value : values) {
          std::string token = "${" + std::to_string(i++) + "}";
-         Logalizer::Config::Utils::findAndReplace(&line_to_fill, token, entry);
+         Logalizer::Config::Utils::findAndReplace(&line_to_fill, token, value);
       }
    }
-   else if (v.size()) {
-      std::string params = "(";
-      for (auto entry : v) {
-         params += entry + ", ";
-      }
-      if (params.back() == ' ') {
-         params.erase(params.end() - 2, params.end());
-      }
-
-      params += ")";
-      line_to_fill.append(params);
+   else if (values.size()) {
+      line_to_fill.append(pack_parameters(values));
    }
    return line_to_fill;
 }
