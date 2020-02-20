@@ -13,9 +13,10 @@ void ConfigParser::updateRelativePaths(std::string const &log_file)
 {
    using namespace Utils;
    auto [dir, file] = getDirFile(log_file);
-   replaceStringVariables(&generate_uml_command_, dir, file);
+   std::for_each(begin(execute_commands_), end(execute_commands_),
+                 [dir = dir, file = file](auto &command) { replaceStringVariables(&command, dir, file); });
 
    replaceStringVariables(&backup_file_, dir, file);
-   replaceStringVariables(&uml_file_, dir, file);
+   replaceStringVariables(&translation_file_, dir, file);
 }
 }  // namespace Logalizer::Config

@@ -107,17 +107,11 @@ void printConfigHelp()
   "replace_words": {
     "search": "replace"
   },
-  "generate_uml": [
-    "java",
-    "-DPLANTUML_LIMIT_SIZE=16384",
-    "-jar",
-    "plantuml.jar",
-    "-config",
-    "uml_config.txt",
-    "\"${fileDirname}/${fileBasenameNoExtension}_seq.txt\""
+  "execute": [
+    "java -DPLANTUML_LIMIT_SIZE=32768 -jar plantuml.jar \"${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt\""
   ],
-  "backup_file": "${fileDirname}/${fileBasenameNoExtension}.original",
-  "translated_uml_file": "${fileDirname}/${fileBasenameNoExtension}_seq.txt"
+  "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}.original",
+  "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt",
 }
 )";
 }
@@ -179,18 +173,18 @@ void backupIfNotExists(std::string original, std::string backup)
    }
 }
 
-static std::chrono::time_point<std::chrono::high_resolution_clock> start;
-static std::chrono::time_point<std::chrono::high_resolution_clock> end;
+static std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+static std::chrono::time_point<std::chrono::high_resolution_clock> end_time;
 
 void start_benchmark()
 {
-   start = std::chrono::high_resolution_clock::now();
+   start_time = std::chrono::high_resolution_clock::now();
 }
 
 void end_benchmark(std::string const &print)
 {
-   end = std::chrono::high_resolution_clock::now();
-   auto count = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+   end_time = std::chrono::high_resolution_clock::now();
+   auto count = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
    std::cout << '[' << count << "ms] " << print << '\n';
 }
 
@@ -209,17 +203,20 @@ int main(int argc, char **argv)
    backupIfNotExists(log_file, p->getBackupFile());
 
    start_benchmark();
-   createTranslationFile(log_file, p->getUmlFile(), p.get());
+   createTranslationFile(log_file, p->getTranslationFile(), p.get());
    end_benchmark("Translation generated");
 
-   std::cout << "Executing...\n";
-   start_benchmark();
-   std::cout << p->getGenerateUmlCommand().c_str() << std::endl;
-   if (int returnval = system(p->getGenerateUmlCommand().c_str())) {
-      std::cerr << TAG_GENERATE_UML << " : " << p->getGenerateUmlCommand().c_str() << " execution failed\n";
-      return returnval;
+   for (auto const &command : p->getExecuteCommands()) {
+      std::cout << "Executing...\n";
+      start_benchmark();
+      const char *command_str = command.c_str();
+      std::cout << command_str << std::endl;
+      if (int returnval = system(command_str)) {
+         std::cerr << TAG_EXECUTE << " : " << command << " execution failed\n";
+         return returnval;
+      }
+      end_benchmark("Executed");
    }
-   end_benchmark("UML diagram generated");
 
    return 0;
 }

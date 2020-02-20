@@ -13,8 +13,8 @@ class JsonConfigParser : public ConfigParser {
    virtual void loadBlacklists() override;
    virtual void loadDeleteLines() override;
    virtual void loadReplaceWords() override;
-   virtual void loadGenerateUML() override;
-   virtual void loadUMLFile() override;
+   virtual void loadExecute() override;
+   virtual void loadTranslationFile() override;
    virtual void loadBackupFile() override;
    virtual ~JsonConfigParser() override;
 

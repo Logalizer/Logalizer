@@ -99,8 +99,8 @@ void JsonConfigParser::loadAllConfigurations()
    loadBlacklists();
    loadDeleteLines();
    loadReplaceWords();
-   loadGenerateUML();
-   loadUMLFile();
+   loadExecute();
+   loadTranslationFile();
    loadBackupFile();
 }
 
@@ -157,17 +157,14 @@ void JsonConfigParser::loadReplaceWords()
    }
 }
 
-void JsonConfigParser::loadGenerateUML()
+void JsonConfigParser::loadExecute()
 {
-   std::vector<std::string> lines = details::loadArray(config_, TAG_GENERATE_UML);
-   std::stringstream ss;
-   copy(begin(lines), end(lines), std::ostream_iterator<std::string>(ss, " "));
-   generate_uml_command_ = ss.str();
+   execute_commands_ = details::loadArray(config_, TAG_EXECUTE);
 }
 
-void JsonConfigParser::loadUMLFile()
+void JsonConfigParser::loadTranslationFile()
 {
-   uml_file_ = details::getValue<std::string>(config_, TAG_TRANSLATED_UML_FILE);
+   translation_file_ = details::getValue<std::string>(config_, TAG_TRANSLATION_FILE);
 }
 
 void JsonConfigParser::loadBackupFile()

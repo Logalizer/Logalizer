@@ -12,8 +12,8 @@ constexpr char TAG_DISABLE_CATEGORY[] = "disable_category";
 constexpr char TAG_BLACKLIST[] = "blacklist";
 constexpr char TAG_DELETE_LINES[] = "delete_lines";
 constexpr char TAG_REPLACE_WORDS[] = "replace_words";
-constexpr char TAG_GENERATE_UML[] = "generate_uml";
-constexpr char TAG_TRANSLATED_UML_FILE[] = "translated_uml_file";
+constexpr char TAG_EXECUTE[] = "execute";
+constexpr char TAG_TRANSLATION_FILE[] = "translation_file";
 constexpr char TAG_BACKUP_FILE[] = "backup_file";
 
 class ConfigParser {
@@ -26,8 +26,8 @@ class ConfigParser {
    virtual void loadBlacklists() = 0;
    virtual void loadDeleteLines() = 0;
    virtual void loadReplaceWords() = 0;
-   virtual void loadGenerateUML() = 0;
-   virtual void loadUMLFile() = 0;
+   virtual void loadExecute() = 0;
+   virtual void loadTranslationFile() = 0;
    virtual void loadBackupFile() = 0;
    virtual ~ConfigParser() = default;
    void updateRelativePaths(std::string const& log_file);
@@ -41,8 +41,8 @@ class ConfigParser {
    std::vector<std::string> delete_lines_;
    std::vector<replacement> replace_words_;
    std::vector<std::string> blacklists_;
-   std::string generate_uml_command_;
-   std::string uml_file_;
+   std::vector<std::string> execute_commands_;
+   std::string translation_file_;
    std::string backup_file_;
 
    std::string config_file_;
@@ -84,13 +84,13 @@ class ConfigParser {
    {
       return blacklists_;
    }
-   [[nodiscard]] inline std::string const& getGenerateUmlCommand() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& getExecuteCommands() const noexcept
    {
-      return generate_uml_command_;
+      return execute_commands_;
    }
-   [[nodiscard]] inline std::string const& getUmlFile() const noexcept
+   [[nodiscard]] inline std::string const& getTranslationFile() const noexcept
    {
-      return uml_file_;
+      return translation_file_;
    }
 
    [[nodiscard]] inline std::string const& getBackupFile() const noexcept
