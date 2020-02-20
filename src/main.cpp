@@ -122,6 +122,8 @@ void printConfigHelp()
 )";
 }
 
+using namespace Logalizer::Config;
+
 std::pair<std::string, std::string> getCmdLineArgs(const std::vector<std::string_view> &args)
 {
    std::string log_file, config_file;
@@ -149,7 +151,7 @@ std::pair<std::string, std::string> getCmdLineArgs(const std::vector<std::string
       printHelp();
       exit(0);
    }
-   auto [dir,dummy] = Logalizer::Config::Utils::getDirFile(args.at(0).data());
+   auto [dir, dummy] = Utils::getDirFile(args.at(0).data());
    if (chdir(dir.c_str())) std::cerr << "Could not change directory to " << dir;
    if (config_file.empty()) config_file = "config.json";
    if (struct stat my_stat; stat(config_file.c_str(), &my_stat) != 0) {
@@ -169,7 +171,7 @@ void backupIfNotExists(std::string original, std::string backup)
 {
    if (original.empty() || backup.empty()) return;
 
-   Logalizer::Config::Utils::mkdir(Logalizer::Config::Utils::getDirFile(backup).first);
+   Utils::mkdir(Utils::getDirFile(backup).first);
    if (struct stat my_stat; stat(backup.c_str(), &my_stat) != 0) {
       std::ifstream src(original, std::ios::binary);
       std::ofstream dst(backup, std::ios::binary);
@@ -177,28 +179,47 @@ void backupIfNotExists(std::string original, std::string backup)
    }
 }
 
+static std::chrono::time_point<std::chrono::high_resolution_clock> start;
+static std::chrono::time_point<std::chrono::high_resolution_clock> end;
+
+void start_benchmark()
+{
+   start = std::chrono::high_resolution_clock::now();
+}
+
+void end_benchmark(std::string const &print)
+{
+   end = std::chrono::high_resolution_clock::now();
+   auto count = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+   std::cout << '[' << count << "ms] " << print << '\n';
+}
+
 int main(int argc, char **argv)
 {
    std::vector<std::string_view> args(argv, argv + argc);
    auto [config_file, log_file] = getCmdLineArgs(args);
-   auto start = std::chrono::high_resolution_clock::now();
-   auto p = std::make_unique<Logalizer::Config::JsonConfigParser>(config_file);
+
+   start_benchmark();
+   auto p = std::make_unique<JsonConfigParser>(config_file);
    p->loadConfigFile();
    p->loadAllConfigurations();
-   auto end = std::chrono::high_resolution_clock::now();
-   std::cout << "loading configuration took "
-             << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "us\n";
    p->updateRelativePaths(log_file);
+   end_benchmark("Configuration loaded");
 
    backupIfNotExists(log_file, p->getBackupFile());
 
+   start_benchmark();
    createTranslationFile(log_file, p->getUmlFile(), p.get());
+   end_benchmark("Translation generated");
 
+   std::cout << "Executing...\n";
+   start_benchmark();
    std::cout << p->getGenerateUmlCommand().c_str() << std::endl;
    if (int returnval = system(p->getGenerateUmlCommand().c_str())) {
       std::cerr << TAG_GENERATE_UML << " : " << p->getGenerateUmlCommand().c_str() << " execution failed\n";
       return returnval;
    }
+   end_benchmark("UML diagram generated");
 
    return 0;
 }
