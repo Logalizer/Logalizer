@@ -106,7 +106,7 @@ std::string fillVariableValues(std::string const &line, std::vector<variable> co
       int i = 1;
       for (auto value : values) {
          std::string token = "${" + std::to_string(i++) + "}";
-         Logalizer::Config::Utils::findAndReplace(&line_to_fill, token, value);
+         Utils::findAndReplace(&line_to_fill, token, value);
       }
    }
    else if (values.size()) {
@@ -146,7 +146,8 @@ auto matchTranslation(std::string const &line, ConfigParser const *data)
 
 void replaceWords(std::string *line, std::vector<replacement> const &replacemnets)
 {
-   for (auto const &entry : replacemnets) Utils::findAndReplace(line, entry.search, entry.replace);
+   std::for_each(cbegin(replacemnets), cend(replacemnets),
+                 [&](auto const &entry) { Utils::findAndReplace(line, entry.search, entry.replace); });
 }
 
 void createTranslationFile(std::string const &trace_file_name, std::string const &translation_file_name,
@@ -182,7 +183,7 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
    auto post_text = parser->getWrapTextPost();
    std::copy(post_text.begin(), post_text.end(), std::back_inserter(translations));
 
-   Logalizer::Config::Utils::mkdir(Logalizer::Config::Utils::getDirFile(translation_file_name).first);
+   Utils::mkdir(Utils::getDirFile(translation_file_name).first);
 
    std::ofstream translation_file(translation_file_name);
    std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file, "\n"));
