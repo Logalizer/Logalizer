@@ -10,7 +10,7 @@
 
 using namespace Logalizer::Config;
 
-std::string getVariableValues_r(std::string const &line, std::vector<variable> const &variables)
+std::string fetch_values_regex(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
    if (variables.size() == 0) return value;
@@ -34,7 +34,7 @@ std::string getVariableValues_r(std::string const &line, std::vector<variable> c
    return value;
 }
 
-std::string getVariableValues_b(std::string const &line, std::vector<variable> const &variables)
+std::string fetch_values_braced(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
    if (variables.size() == 0) return value;
@@ -62,17 +62,17 @@ std::string getVariableValues_b(std::string const &line, std::vector<variable> c
    return value;
 }
 
-std::vector<std::string> getVariableValues(std::string const &line, std::vector<variable> const &variables)
+std::vector<std::string> fetch_values(std::string const &line, std::vector<variable> const &variables)
 {
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
 
-   auto capture_values = [](auto const &v, auto const &content) -> std::string {
-      auto start_point = content.find(v.startswith);
+   auto capture_values = [](auto const &variable, auto const &content) -> std::string {
+      auto start_point = content.find(variable.startswith);
       if (start_point == std::string::npos) return " ";
 
-      start_point += v.startswith.size();
-      auto end_point = content.find(v.endswith, start_point);
+      start_point += variable.startswith.size();
+      auto end_point = content.find(variable.endswith, start_point);
       if (end_point == std::string::npos) return " ";
 
       std::string capture(content.begin() + static_cast<long>(start_point),
@@ -95,18 +95,15 @@ std::string pack_parameters(std::vector<std::string> const &v)
    return params;
 }
 
-std::string fillVariableValues(std::string const &line, std::vector<variable> const &variables,
-                               std::string line_to_fill)
+std::string fill_values(std::vector<std::string> const &values, std::string line_to_fill)
 {
-   std::vector<std::string> values = getVariableValues(line, variables);
-
    bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
 
    if (formatted_print) {
       int i = 1;
       for (auto value : values) {
          std::string token = "${" + std::to_string(i++) + "}";
-         Utils::findAndReplace(&line_to_fill, token, value);
+         Utils::replace_all(&line_to_fill, token, value);
       }
    }
    else if (values.size()) {
@@ -115,12 +112,12 @@ std::string fillVariableValues(std::string const &line, std::vector<variable> co
    return line_to_fill;
 }
 
-auto matchTranslation(std::string const &line, ConfigParser const *data)
+auto match(std::string const &line, std::vector<translation> const &translations,
+           std::vector<std::string> const &blacklists)
 {
-   auto found = std::find_if(cbegin(data->getTranslations()), cend(data->getTranslations()),
-                             [&line](auto const &tr) { return tr.in(line); });
-   if (found != cend(data->getTranslations())) {
-      bool blacklisted = std::any_of(cbegin(data->getBlacklists()), cend(data->getBlacklists()),
+   auto found = std::find_if(cbegin(translations), cend(translations), [&line](auto const &tr) { return tr.in(line); });
+   if (found != cend(translations)) {
+      bool blacklisted = std::any_of(cbegin(blacklists), cend(blacklists),
                                      [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
       if (!blacklisted) {
          return found;
@@ -130,8 +127,8 @@ auto matchTranslation(std::string const &line, ConfigParser const *data)
    return found;
 }
 
-[[nodiscard]] bool isLineDeleted(std::string const &line, std::vector<std::string> const &delete_lines,
-                                 std::vector<std::regex> const &delete_lines_regex) noexcept
+[[nodiscard]] bool is_deleted(std::string const &line, std::vector<std::string> const &delete_lines,
+                              std::vector<std::regex> const &delete_lines_regex) noexcept
 {
    bool deleted = std::any_of(cbegin(delete_lines), cend(delete_lines),
                               [&line](auto const &dl) { return line.find(dl) != std::string::npos; });
@@ -144,35 +141,36 @@ auto matchTranslation(std::string const &line, ConfigParser const *data)
    return deleted;
 }
 
-void replaceWords(std::string *line, std::vector<replacement> const &replacemnets)
+void replace(std::string *line, std::vector<replacement> const &replacemnets)
 {
    std::for_each(cbegin(replacemnets), cend(replacemnets),
-                 [&](auto const &entry) { Utils::findAndReplace(line, entry.search, entry.replace); });
+                 [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
-void createTranslationFile(std::string const &trace_file_name, std::string const &translation_file_name,
-                           ConfigParser const *parser)
+void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
+                    ConfigParser const *parser)
 {
    std::ifstream trace_file(trace_file_name);
    std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    std::vector<std::string> translations;
 
-   auto pre_text = parser->getWrapTextPre();
+   auto pre_text = parser->get_wrap_text_pre();
    std::copy(pre_text.begin(), pre_text.end(), std::back_inserter(translations));
 
    for (std::string line; getline(trace_file, line);) {
-      if (isLineDeleted(line, parser->getDeleteLines(), parser->getDeleteLinesRegex())) {
+      if (is_deleted(line, parser->get_delete_lines(), parser->get_delete_lines_regex())) {
          continue;
       }
 
-      replaceWords(&line, parser->getReplaceWords());
+      replace(&line, parser->get_replace_words());
       trimmed_file << line << '\n';
 
-      auto found = matchTranslation(line, parser);
-      if (found != cend(parser->getTranslations())) {
+      auto found = match(line, parser->get_translations(), parser->get_blacklists());
+      if (found != cend(parser->get_translations())) {
          bool repeat_allowed = found->repeat;
-         std::string translation = fillVariableValues(line, found->variables, found->print);
+         std::vector<std::string> values = fetch_values(line, found->variables);
+         std::string translation = fill_values(values, found->print);
          bool new_entry = std::none_of(cbegin(translations), cend(translations),
                                        [&translation](auto const &entry) { return entry == translation; });
          if (repeat_allowed || new_entry) {
@@ -180,10 +178,10 @@ void createTranslationFile(std::string const &trace_file_name, std::string const
          }
       }
    }
-   auto post_text = parser->getWrapTextPost();
+   auto post_text = parser->get_wrap_text_post();
    std::copy(post_text.begin(), post_text.end(), std::back_inserter(translations));
 
-   Utils::mkdir(Utils::getDirFile(translation_file_name).first);
+   Utils::mkdir(Utils::dir_file(translation_file_name).first);
 
    std::ofstream translation_file(translation_file_name);
    std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file, "\n"));

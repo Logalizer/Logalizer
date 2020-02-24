@@ -10,7 +10,7 @@ using json = nlohmann::json;
 namespace details {
 
 template <class T>
-T getValue(json const &config, std::string const &name)
+T get_value(json const &config, std::string const &name)
 {
    T value;
    auto found = config.find(name);
@@ -25,7 +25,7 @@ T getValue(json const &config, std::string const &name)
    return value;
 }
 
-std::vector<variable> getVariables(json const &jvariables)
+std::vector<variable> get_variables(json const &jvariables)
 {
    std::vector<variable> variables;
    for (auto &[key, value] : jvariables.items()) {
@@ -34,10 +34,10 @@ std::vector<variable> getVariables(json const &jvariables)
    return variables;
 }
 
-std::vector<std::string> loadArray(json const &config, std::string const &name)
+std::vector<std::string> load_array(json const &config, std::string const &name)
 {
    std::vector<std::string> array;
-   json j_bl = getValue<json>(config, name);
+   json j_bl = get_value<json>(config, name);
 
    for (auto &[key, value] : j_bl.items()) {
       array.push_back(value);
@@ -45,12 +45,12 @@ std::vector<std::string> loadArray(json const &config, std::string const &name)
    return array;
 }
 
-std::vector<translation> loadTranslations(json const &config, std::string const &name,
-                                          std::vector<std::string> disabled_categories)
+std::vector<translation> load_translations(json const &config, std::string const &name,
+                                           std::vector<std::string> disabled_categories)
 {
    std::vector<translation> translations;
    translation tr;
-   json j_tr = getValue<json>(config, name);
+   json j_tr = get_value<json>(config, name);
 
    for (auto &[key, value] : j_tr.items()) {
       // key : 0, 1, 2...
@@ -70,10 +70,10 @@ std::vector<translation> loadTranslations(json const &config, std::string const 
       //                                getVariables(entry["variables"]));
 
       tr.category = entry["category"];
-      tr.patterns = loadArray(entry, "patterns");
+      tr.patterns = load_array(entry, "patterns");
       tr.print = entry["print"];
       tr.repeat = (entry["repeat"] == "false") ? false : true;
-      tr.variables = getVariables(entry["variables"]);
+      tr.variables = get_variables(entry["variables"]);
       translations.push_back(std::move(tr));
    }
    return translations;
@@ -85,49 +85,49 @@ JsonConfigParser::JsonConfigParser(std::string const &config_file) : ConfigParse
    if (config_file_.empty()) config_file_ = "config.json";
 }
 
-void JsonConfigParser::loadConfigFile()
+void JsonConfigParser::load_config_file()
 {
    std::ifstream file(config_file_);
    file >> config_;
    std::cout << "configuration loaded from " << config_file_ << '\n';
 }
 
-void JsonConfigParser::loadAllConfigurations()
+void JsonConfigParser::load_all_configurations()
 {
-   loadTranslations();
-   loadWrapText();
-   loadBlacklists();
-   loadDeleteLines();
-   loadReplaceWords();
-   loadExecute();
-   loadTranslationFile();
-   loadBackupFile();
+   load_translations();
+   load_wrap_text();
+   load_blacklists();
+   load_delete_lines();
+   load_replace_words();
+   load_execute();
+   load_translation_file();
+   load_backup_file();
 }
 
 JsonConfigParser::~JsonConfigParser()
 {
 }
 
-void JsonConfigParser::loadTranslations()
+void JsonConfigParser::load_translations()
 {
-   disabled_categories_ = details::loadArray(config_, TAG_DISABLE_CATEGORY);
-   translations_ = details::loadTranslations(config_, TAG_TRANSLATIONS, disabled_categories_);
+   disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
+   translations_ = details::load_translations(config_, TAG_TRANSLATIONS, disabled_categories_);
 }
 
-void JsonConfigParser::loadWrapText()
+void JsonConfigParser::load_wrap_text()
 {
-   wrap_text_pre_ = details::loadArray(config_, TAG_WRAPTEXT_PRE);
-   wrap_text_post_ = details::loadArray(config_, TAG_WRAPTEXT_POST);
+   wrap_text_pre_ = details::load_array(config_, TAG_WRAPTEXT_PRE);
+   wrap_text_post_ = details::load_array(config_, TAG_WRAPTEXT_POST);
 }
 
-void JsonConfigParser::loadBlacklists()
+void JsonConfigParser::load_blacklists()
 {
-   blacklists_ = details::loadArray(config_, TAG_BLACKLIST);
+   blacklists_ = details::load_array(config_, TAG_BLACKLIST);
 }
 
-void JsonConfigParser::loadDeleteLines()
+void JsonConfigParser::load_delete_lines()
 {
-   std::vector<std::string> deletors = details::loadArray(config_, TAG_DELETE_LINES);
+   std::vector<std::string> deletors = details::load_array(config_, TAG_DELETE_LINES);
 
    for (auto const &entry : deletors) {
       if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
@@ -149,27 +149,27 @@ void JsonConfigParser::loadDeleteLines()
    }
 }
 
-void JsonConfigParser::loadReplaceWords()
+void JsonConfigParser::load_replace_words()
 {
-   json j_tr = details::getValue<json>(config_, TAG_REPLACE_WORDS);
+   json j_tr = details::get_value<json>(config_, TAG_REPLACE_WORDS);
    for (auto &[key, value] : j_tr.items()) {
       replace_words_.emplace_back(key, value);
    }
 }
 
-void JsonConfigParser::loadExecute()
+void JsonConfigParser::load_execute()
 {
-   execute_commands_ = details::loadArray(config_, TAG_EXECUTE);
+   execute_commands_ = details::load_array(config_, TAG_EXECUTE);
 }
 
-void JsonConfigParser::loadTranslationFile()
+void JsonConfigParser::load_translation_file()
 {
-   translation_file_ = details::getValue<std::string>(config_, TAG_TRANSLATION_FILE);
+   translation_file_ = details::get_value<std::string>(config_, TAG_TRANSLATION_FILE);
 }
 
-void JsonConfigParser::loadBackupFile()
+void JsonConfigParser::load_backup_file()
 {
-   backup_file_ = details::getValue<std::string>(config_, TAG_BACKUP_FILE);
+   backup_file_ = details::get_value<std::string>(config_, TAG_BACKUP_FILE);
 }
 
 }  // namespace Logalizer::Config

@@ -7,7 +7,7 @@ static const std::string VAR_FILE_DIR_NAME = "${fileDirname}";
 static const std::string VAR_FILE_BASE_NO_EXTENSION = "${fileBasenameNoExtension}";
 static const std::string VAR_FILE_BASE_WITH_EXTENSION = "${fileBasename}";
 
-std::pair<std::string, std::string> getDirFile(std::string const &basefile)
+std::pair<std::string, std::string> dir_file(std::string const &basefile)
 {
    size_t end = basefile.find_last_of("/\\");
    std::string dirvalue = ".";
@@ -21,7 +21,7 @@ std::pair<std::string, std::string> getDirFile(std::string const &basefile)
    return dirfile;
 }
 
-std::string fileNameWithoutExtension(std::string const &file)
+std::string without_extension(std::string const &file)
 {
    size_t end = file.find_last_of(".");
    std::string fileName = file;
@@ -29,7 +29,7 @@ std::string fileNameWithoutExtension(std::string const &file)
    return fileName;
 }
 
-void findAndReplace(std::string *input, std::string const &token, std::string const &replace)
+void replace_all(std::string *input, std::string const &token, std::string const &replace)
 {
    size_t pos = input->find(token);
    while (pos != std::string::npos) {
@@ -38,11 +38,11 @@ void findAndReplace(std::string *input, std::string const &token, std::string co
    }
 }
 
-void replaceStringVariables(std::string *input, std::string const &dir, std::string const &file)
+void replace_paths(std::string *input, std::string const &dir, std::string const &file)
 {
-   findAndReplace(input, VAR_FILE_DIR_NAME, dir);
-   findAndReplace(input, VAR_FILE_BASE_WITH_EXTENSION, file);
-   findAndReplace(input, VAR_FILE_BASE_NO_EXTENSION, fileNameWithoutExtension(file));
+   replace_all(input, VAR_FILE_DIR_NAME, dir);
+   replace_all(input, VAR_FILE_BASE_WITH_EXTENSION, file);
+   replace_all(input, VAR_FILE_BASE_NO_EXTENSION, without_extension(file));
 }
 
 void mkdir(std::string path)
@@ -51,10 +51,10 @@ void mkdir(std::string path)
       return;
    }
 #ifdef _WIN32
-   findAndReplace(&path, "/", "");
+   replace_all(&path, "/", "");
    system((std::string("mkdir \"") + path + "\"").c_str());
 #else
-   findAndReplace(&path, "\\", "");
+   replace_all(&path, "\\", "");
    system((std::string("mkdir -p \"") + path + "\"").c_str());
 #endif
 }

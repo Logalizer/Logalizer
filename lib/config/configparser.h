@@ -19,18 +19,18 @@ constexpr char TAG_BACKUP_FILE[] = "backup_file";
 class ConfigParser {
   public:
    ConfigParser(std::string config_file);
-   virtual void loadConfigFile() = 0;
-   virtual void loadAllConfigurations() = 0;
-   virtual void loadTranslations() = 0;
-   virtual void loadWrapText() = 0;
-   virtual void loadBlacklists() = 0;
-   virtual void loadDeleteLines() = 0;
-   virtual void loadReplaceWords() = 0;
-   virtual void loadExecute() = 0;
-   virtual void loadTranslationFile() = 0;
-   virtual void loadBackupFile() = 0;
+   virtual void load_config_file() = 0;
+   virtual void load_all_configurations() = 0;
+   virtual void load_translations() = 0;
+   virtual void load_wrap_text() = 0;
+   virtual void load_blacklists() = 0;
+   virtual void load_delete_lines() = 0;
+   virtual void load_replace_words() = 0;
+   virtual void load_execute() = 0;
+   virtual void load_translation_file() = 0;
+   virtual void load_backup_file() = 0;
    virtual ~ConfigParser() = default;
-   void updateRelativePaths(std::string const& log_file);
+   void update_relative_paths(std::string const& log_file);
 
   protected:
    std::vector<translation> translations_;
@@ -48,52 +48,52 @@ class ConfigParser {
    std::string config_file_;
 
   public:
-   [[nodiscard]] inline std::vector<translation> const& getTranslations() const noexcept
+   [[nodiscard]] inline std::vector<translation> const& get_translations() const noexcept
    {
       return translations_;
    }
 
-   [[nodiscard]] inline std::vector<std::string> const& getDisabledCategories() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& get_disabled_categories() const noexcept
    {
       return disabled_categories_;
    }
 
-   [[nodiscard]] inline std::vector<std::string> const& getWrapTextPre() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& get_wrap_text_pre() const noexcept
    {
       return wrap_text_pre_;
    }
 
-   [[nodiscard]] inline std::vector<std::string> const& getWrapTextPost() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& get_wrap_text_post() const noexcept
    {
       return wrap_text_post_;
    }
 
-   [[nodiscard]] inline std::vector<std::regex> const& getDeleteLinesRegex() const noexcept
+   [[nodiscard]] inline std::vector<std::regex> const& get_delete_lines_regex() const noexcept
    {
       return delete_lines_regex_;
    }
-   [[nodiscard]] inline std::vector<std::string> const& getDeleteLines() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& get_delete_lines() const noexcept
    {
       return delete_lines_;
    }
-   [[nodiscard]] inline std::vector<replacement> const& getReplaceWords() const noexcept
+   [[nodiscard]] inline std::vector<replacement> const& get_replace_words() const noexcept
    {
       return replace_words_;
    }
-   [[nodiscard]] inline std::vector<std::string> const& getBlacklists() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& get_blacklists() const noexcept
    {
       return blacklists_;
    }
-   [[nodiscard]] inline std::vector<std::string> const& getExecuteCommands() const noexcept
+   [[nodiscard]] inline std::vector<std::string> const& get_execute_commands() const noexcept
    {
       return execute_commands_;
    }
-   [[nodiscard]] inline std::string const& getTranslationFile() const noexcept
+   [[nodiscard]] inline std::string const& get_translation_file() const noexcept
    {
       return translation_file_;
    }
 
-   [[nodiscard]] inline std::string const& getBackupFile() const noexcept
+   [[nodiscard]] inline std::string const& get_backup_file() const noexcept
    {
       return backup_file_;
    }

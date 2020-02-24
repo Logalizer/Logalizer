@@ -8,18 +8,18 @@ namespace Logalizer::Config {
 class JsonConfigParser : public ConfigParser {
   public:
    JsonConfigParser(const std::string &config_file = "config.json");
-   virtual void loadTranslations() override;
-   virtual void loadWrapText() override;
-   virtual void loadBlacklists() override;
-   virtual void loadDeleteLines() override;
-   virtual void loadReplaceWords() override;
-   virtual void loadExecute() override;
-   virtual void loadTranslationFile() override;
-   virtual void loadBackupFile() override;
+   virtual void load_translations() override;
+   virtual void load_wrap_text() override;
+   virtual void load_blacklists() override;
+   virtual void load_delete_lines() override;
+   virtual void load_replace_words() override;
+   virtual void load_execute() override;
+   virtual void load_translation_file() override;
+   virtual void load_backup_file() override;
    virtual ~JsonConfigParser() override;
 
-   virtual void loadConfigFile() override;
-   virtual void loadAllConfigurations() override;
+   virtual void load_config_file() override;
+   virtual void load_all_configurations() override;
 
   private:
    nlohmann::json config_;
