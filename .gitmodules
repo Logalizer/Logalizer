@@ -1,3 +1,6 @@
 [submodule "lib/config/external/json"]
 	path = lib/config/external/json
 	url = https://github.com/nlohmann/json/
+[submodule "lib/range-v3"]
+	path = lib/range-v3
+	url = https://github.com/ericniebler/range-v3.git

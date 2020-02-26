@@ -7,6 +7,7 @@
 #include <vector>
 #include "jsonconfigparser.h"
 #include "path_variable_utils.h"
+#include "range/v3/all.hpp"
 
 using namespace Logalizer::Config;
 
@@ -62,24 +63,25 @@ std::string fetch_values_braced(std::string const &line, std::vector<variable> c
    return value;
 }
 
+std::string capture_values(variable const &var, std::string const &content)
+{
+   auto start_point = content.find(var.startswith);
+   if (start_point == std::string::npos) return " ";
+
+   start_point += var.startswith.size();
+   auto end_point = content.find(var.endswith, start_point);
+   if (end_point == std::string::npos) return " ";
+
+   std::string capture(content.begin() + static_cast<long>(start_point),
+                       content.begin() + static_cast<long>(end_point));
+
+   return capture;
+}
+
 std::vector<std::string> fetch_values(std::string const &line, std::vector<variable> const &variables)
 {
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
-
-   auto capture_values = [](auto const &variable, auto const &content) -> std::string {
-      auto start_point = content.find(variable.startswith);
-      if (start_point == std::string::npos) return " ";
-
-      start_point += variable.startswith.size();
-      auto end_point = content.find(variable.endswith, start_point);
-      if (end_point == std::string::npos) return " ";
-
-      std::string capture(content.begin() + static_cast<long>(start_point),
-                          content.begin() + static_cast<long>(end_point));
-
-      return capture;
-   };
 
    std::transform(begin(variables), end(variables), std::back_inserter(value),
                   std::bind(capture_values, std::placeholders::_1, line));
@@ -90,26 +92,39 @@ std::vector<std::string> fetch_values(std::string const &line, std::vector<varia
 std::string pack_parameters(std::vector<std::string> const &v)
 {
    auto comma_fold = [](std::string a, std::string b) { return a + ", " + b; };
-   std::string params = std::accumulate(next(begin(v)), end(v), std::string("(") + v[0], comma_fold);
-   params += ")";
+   std::string initial_value = "(" + v[0];
+   std::string params = std::accumulate(next(begin(v)), end(v), initial_value, comma_fold) + ")";
    return params;
 }
 
-std::string fill_values(std::vector<std::string> const &values, std::string line_to_fill)
+std::string fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
-   bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
+   std::vector<std::string> tokens;
+   std::generate_n(back_inserter(tokens), values.size(),
+                   [i = 1]() mutable { return std::string("${") + std::to_string(i++) + "}"; });
+   std::string filled_line = line_to_fill;
+   for (auto [token, value] : ranges::view::zip(tokens, values)) {
+      Utils::replace_all(&filled_line, token, value);
+   }
+   return filled_line;
+}
 
+std::string fill_values(std::vector<std::string> const &values, std::string const &line_to_fill)
+{
+   std::string filled_line;
+   bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
    if (formatted_print) {
-      int i = 1;
-      for (auto value : values) {
-         std::string token = "${" + std::to_string(i++) + "}";
-         Utils::replace_all(&line_to_fill, token, value);
-      }
+      filled_line = fill_values_formatted(values, line_to_fill);
    }
    else if (values.size()) {
-      line_to_fill.append(pack_parameters(values));
+      filled_line = line_to_fill + pack_parameters(values);
    }
-   return line_to_fill;
+   return filled_line;
+}
+
+[[nodiscard]] bool is_blacklisted(std::string const &line, std::vector<std::string> const &blacklists)
+{
+   return ranges::any_of(blacklists, [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
 }
 
 auto match(std::string const &line, std::vector<translation> const &translations,
@@ -117,9 +132,7 @@ auto match(std::string const &line, std::vector<translation> const &translations
 {
    auto found = std::find_if(cbegin(translations), cend(translations), [&line](auto const &tr) { return tr.in(line); });
    if (found != cend(translations)) {
-      bool blacklisted = std::any_of(cbegin(blacklists), cend(blacklists),
-                                     [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
-      if (!blacklisted) {
+      if (!is_blacklisted(line, blacklists)) {
          return found;
       }
    }
@@ -130,21 +143,17 @@ auto match(std::string const &line, std::vector<translation> const &translations
 [[nodiscard]] bool is_deleted(std::string const &line, std::vector<std::string> const &delete_lines,
                               std::vector<std::regex> const &delete_lines_regex) noexcept
 {
-   bool deleted = std::any_of(cbegin(delete_lines), cend(delete_lines),
-                              [&line](auto const &dl) { return line.find(dl) != std::string::npos; });
-
+   bool deleted = ranges::any_of(delete_lines, [&line](auto const &dl) { return line.find(dl) != std::string::npos; });
    if (deleted) return true;
 
-   deleted = std::any_of(cbegin(delete_lines_regex), cend(delete_lines_regex),
-                         [&line](auto const &dl) { return regex_search(line, dl); });
+   deleted = ranges::any_of(delete_lines_regex, [&line](auto const &dl) { return regex_search(line, dl); });
 
    return deleted;
 }
 
 void replace(std::string *line, std::vector<replacement> const &replacemnets)
 {
-   std::for_each(cbegin(replacemnets), cend(replacemnets),
-                 [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
+   ranges::for_each(replacemnets, [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
 void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
