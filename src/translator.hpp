@@ -62,24 +62,25 @@ std::string fetch_values_braced(std::string const &line, std::vector<variable> c
    return value;
 }
 
+std::string capture_values(variable const &var, std::string const &content)
+{
+   auto start_point = content.find(var.startswith);
+   if (start_point == std::string::npos) return " ";
+
+   start_point += var.startswith.size();
+   auto end_point = content.find(var.endswith, start_point);
+   if (end_point == std::string::npos) return " ";
+
+   std::string capture(content.begin() + static_cast<long>(start_point),
+                       content.begin() + static_cast<long>(end_point));
+
+   return capture;
+}
+
 std::vector<std::string> fetch_values(std::string const &line, std::vector<variable> const &variables)
 {
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
-
-   auto capture_values = [](auto const &variable, auto const &content) -> std::string {
-      auto start_point = content.find(variable.startswith);
-      if (start_point == std::string::npos) return " ";
-
-      start_point += variable.startswith.size();
-      auto end_point = content.find(variable.endswith, start_point);
-      if (end_point == std::string::npos) return " ";
-
-      std::string capture(content.begin() + static_cast<long>(start_point),
-                          content.begin() + static_cast<long>(end_point));
-
-      return capture;
-   };
 
    std::transform(begin(variables), end(variables), std::back_inserter(value),
                   std::bind(capture_values, std::placeholders::_1, line));
@@ -90,26 +91,37 @@ std::vector<std::string> fetch_values(std::string const &line, std::vector<varia
 std::string pack_parameters(std::vector<std::string> const &v)
 {
    auto comma_fold = [](std::string a, std::string b) { return a + ", " + b; };
-   std::string params = std::accumulate(next(begin(v)), end(v), std::string("(") + v[0], comma_fold);
-   params += ")";
+   std::string initial_value = "(" + v[0];
+   std::string params = std::accumulate(next(begin(v)), end(v), initial_value, comma_fold) + ")";
    return params;
 }
 
-std::string fill_values(std::vector<std::string> const &values, std::string line_to_fill)
+std::string fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
-   bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
+   std::string filled_line = line_to_fill;
+   for(int i=1; i <= values.size(); ++i) {
+      std::string token = "${" + std::to_string(i) + "}";
+      Utils::replace_all(&filled_line, token, values[i]);
+   }
+   return filled_line;
+}
 
+std::string fill_values(std::vector<std::string> const &values, std::string const &line_to_fill)
+{
+   std::string filled_line;
+   bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
    if (formatted_print) {
-      int i = 1;
-      for (auto value : values) {
-         std::string token = "${" + std::to_string(i++) + "}";
-         Utils::replace_all(&line_to_fill, token, value);
-      }
+      filled_line = fill_values_formatted(values, line_to_fill);
    }
    else if (values.size()) {
-      line_to_fill.append(pack_parameters(values));
+      filled_line = line_to_fill + pack_parameters(values);
    }
-   return line_to_fill;
+   return filled_line;
+}
+
+[[nodiscard]] bool is_blacklisted(std::string const &line, std::vector<std::string> const &blacklists)
+{
+   return std::any_of(cbegin(blacklists), cend(blacklists), [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
 }
 
 auto match(std::string const &line, std::vector<translation> const &translations,
@@ -117,9 +129,7 @@ auto match(std::string const &line, std::vector<translation> const &translations
 {
    auto found = std::find_if(cbegin(translations), cend(translations), [&line](auto const &tr) { return tr.in(line); });
    if (found != cend(translations)) {
-      bool blacklisted = std::any_of(cbegin(blacklists), cend(blacklists),
-                                     [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
-      if (!blacklisted) {
+      if (!is_blacklisted(line, blacklists)) {
          return found;
       }
    }
