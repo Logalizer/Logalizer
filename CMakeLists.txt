@@ -7,3 +7,9 @@ project(LogalizerApp VERSION 1.4 LANGUAGES CXX)
 
 add_subdirectory(lib/config)
 add_subdirectory(src)
+
+include(CTest)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
