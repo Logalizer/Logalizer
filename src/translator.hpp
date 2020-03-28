@@ -99,9 +99,9 @@ std::string pack_parameters(std::vector<std::string> const &v)
 std::string fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
    std::string filled_line = line_to_fill;
-   for(int i=1; i <= values.size(); ++i) {
+   for (size_t i = 1; i <= values.size(); ++i) {
       std::string token = "${" + std::to_string(i) + "}";
-      Utils::replace_all(&filled_line, token, values[i]);
+      Utils::replace_all(&filled_line, token, values[i - 1]);
    }
    return filled_line;
 }
@@ -121,7 +121,8 @@ std::string fill_values(std::vector<std::string> const &values, std::string cons
 
 [[nodiscard]] bool is_blacklisted(std::string const &line, std::vector<std::string> const &blacklists)
 {
-   return std::any_of(cbegin(blacklists), cend(blacklists), [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
+   return std::any_of(cbegin(blacklists), cend(blacklists),
+                      [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
 }
 
 auto match(std::string const &line, std::vector<translation> const &translations,
