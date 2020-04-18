@@ -185,9 +185,8 @@ void translate_file(std::string const &trace_file_name, std::string const &trans
          bool repeat_allowed = found->repeat;
          std::vector<std::string> values = fetch_values(line, found->variables);
          std::string translation = fill_values(values, found->print);
-         bool new_entry = std::none_of(cbegin(translations), cend(translations),
-                                       [&translation](auto const &entry) { return entry == translation; });
-         if (repeat_allowed || new_entry) {
+         if (repeat_allowed || std::none_of(cbegin(translations), cend(translations),
+                                            [&translation](auto const &entry) { return entry == translation; })) {
             translations.emplace_back(translation);
          }
       }
