@@ -6,12 +6,23 @@
 
 namespace Logalizer::Config {
 
+/**
+ *  It might be needed to extract a substring from a line.
+ * This substring will be a vaiable.
+ * To capture that variable we look for the surrounding string.
+ * Variable structure holds the start string and end string.
+ * With this information we can extract the middle variable.
+ */
 struct variable {
   public:
    std::string startswith;
    std::string endswith;
 };
 
+/**
+ *  This hold the data populated in "translations" in the config file.
+ * This will hold the information to translate a particular line to a different one.
+ */
 struct translation {
   public:
    std::string category;
