@@ -104,6 +104,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE -O3 -std=c++17)
 # target_include_directories(${PROJECT_NAME} PRIVATE
 # "${PROJECT_SOURCE_DIR}/lib")
 
+
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     target_link_options(${PROJECT_NAME}
                         PRIVATE
@@ -112,5 +113,8 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     target_include_directories(${PROJECT_NAME} PRIVATE "../lib/range-v3/include")
 endif()
 
+find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME}
-                      PRIVATE project_warnings --coverage Logalizer::config)
+                      PRIVATE project_warnings --coverage
+                      Logalizer::config
+                      Threads::Threads)

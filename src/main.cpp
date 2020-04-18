@@ -3,6 +3,7 @@
 #include <chrono>
 #include <memory>
 #include "LogalizerConfig.h"
+#include "future"
 #include "jsonconfigparser.h"
 #include "translator.hpp"
 
@@ -193,8 +194,7 @@ void end_benchmark(std::string const &print)
    std::cout << '[' << count << "ms] " << print << '\n';
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
    std::vector<std::string_view> args(argv, argv + argc);
    CMD_Args cmd_args = parse_cmd_line(args);
 
@@ -205,10 +205,10 @@ int main(int argc, char **argv)
    p->update_relative_paths(cmd_args.log_file);
    end_benchmark("Configuration loaded");
 
-   backup_if_not_exists(cmd_args.log_file, p->get_backup_file());
+   auto backup_future = std::async(std::launch::async, backup_if_not_exists, cmd_args.log_file, p->get_backup_file());
 
    start_benchmark();
-   translate_file(cmd_args.log_file, p->get_translation_file(), p.get());
+   translate_file(cmd_args.log_file, p->get_translation_file(), p.get(), backup_future);
    end_benchmark("Translation file generated");
 
    for (auto const &command : p->get_execute_commands()) {

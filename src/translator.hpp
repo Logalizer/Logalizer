@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <regex>
 #include <string>
@@ -101,7 +102,7 @@ std::string fill_values_formatted(std::vector<std::string> const &values, std::s
    std::string filled_line = line_to_fill;
    for (size_t i = 1; i <= values.size(); ++i) {
       std::string token = "${" + std::to_string(i) + "}";
-      Utils::replace_all(&filled_line, token, values[i - 1]);
+      Utils::replace_all(&filled_line, token, values[i]);
    }
    return filled_line;
 }
@@ -159,7 +160,7 @@ void replace(std::string *line, std::vector<replacement> const &replacemnets)
 }
 
 void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
-                    ConfigParser const *parser)
+                    ConfigParser const *parser, std::future<void> &backup_future)
 {
    std::ifstream trace_file(trace_file_name);
    std::string trim_file_name = trace_file_name + ".trim.log";
@@ -200,6 +201,7 @@ void translate_file(std::string const &trace_file_name, std::string const &trans
 
    trimmed_file.close();
    trace_file.close();
+   backup_future.wait();
    remove(trace_file_name.c_str());
    rename(trim_file_name.c_str(), trace_file_name.c_str());
 }
