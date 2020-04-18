@@ -15,6 +15,7 @@ constexpr char TAG_REPLACE_WORDS[] = "replace_words";
 constexpr char TAG_EXECUTE[] = "execute";
 constexpr char TAG_TRANSLATION_FILE[] = "translation_file";
 constexpr char TAG_BACKUP_FILE[] = "backup_file";
+constexpr char TAG_AUTO_NEW_LINE[] = "auto_new_line";
 
 class ConfigParser {
   public:
@@ -29,6 +30,7 @@ class ConfigParser {
    virtual void load_execute() = 0;
    virtual void load_translation_file() = 0;
    virtual void load_backup_file() = 0;
+   virtual void load_auto_new_line() = 0;
    virtual ~ConfigParser() = default;
    void update_relative_paths(std::string const& log_file);
 
@@ -44,6 +46,7 @@ class ConfigParser {
    std::vector<std::string> execute_commands_;
    std::string translation_file_;
    std::string backup_file_;
+   bool auto_new_line_;
 
    std::string config_file_;
 
@@ -96,6 +99,11 @@ class ConfigParser {
    [[nodiscard]] inline std::string const& get_backup_file() const noexcept
    {
       return backup_file_;
+   }
+
+   [[nodiscard]] inline bool const& get_auto_new_line() const noexcept
+   {
+      return auto_new_line_;
    }
 };
 }  // namespace Logalizer::Config

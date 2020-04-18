@@ -25,6 +25,21 @@ T get_value(json const &config, std::string const &name)
    return value;
 }
 
+template <class T>
+T get_value_or(json const &config, std::string const &name, T value)
+{
+   auto found = config.find(name);
+
+   if (found == config.end()) {
+      std::cerr << "Element " << name << " not found\n";
+   }
+   else {
+      value = found.value();
+   }
+
+   return value;
+}
+
 std::vector<variable> get_variables(json const &jvariables)
 {
    std::vector<variable> variables;
@@ -102,6 +117,7 @@ void JsonConfigParser::load_all_configurations()
    load_execute();
    load_translation_file();
    load_backup_file();
+   load_auto_new_line();
 }
 
 JsonConfigParser::~JsonConfigParser()
@@ -170,6 +186,11 @@ void JsonConfigParser::load_translation_file()
 void JsonConfigParser::load_backup_file()
 {
    backup_file_ = details::get_value<std::string>(config_, TAG_BACKUP_FILE);
+}
+
+void JsonConfigParser::load_auto_new_line()
+{
+   auto_new_line_ = details::get_value_or<bool>(config_, TAG_AUTO_NEW_LINE, true);
 }
 
 }  // namespace Logalizer::Config

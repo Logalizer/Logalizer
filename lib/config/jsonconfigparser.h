@@ -16,6 +16,7 @@ class JsonConfigParser : public ConfigParser {
    virtual void load_execute() override;
    virtual void load_translation_file() override;
    virtual void load_backup_file() override;
+   virtual void load_auto_new_line() override;
    virtual ~JsonConfigParser() override;
 
    virtual void load_config_file() override;

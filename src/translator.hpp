@@ -197,7 +197,12 @@ void translate_file(std::string const &trace_file_name, std::string const &trans
    Utils::mkdir(Utils::dir_file(translation_file_name).first);
 
    std::ofstream translation_file(translation_file_name);
-   std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file, "\n"));
+   if (parser->get_auto_new_line()) {
+      std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file, "\n"));
+   }
+   else {
+      std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file));
+   }
    translation_file.close();
 
    trimmed_file.close();
