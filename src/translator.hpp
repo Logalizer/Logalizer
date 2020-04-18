@@ -116,6 +116,9 @@ std::string fill_values(std::vector<std::string> const &values, std::string cons
    else if (values.size()) {
       filled_line = line_to_fill + pack_parameters(values);
    }
+   else {
+      filled_line = line_to_fill;
+   }
    return filled_line;
 }
 
