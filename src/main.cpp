@@ -112,6 +112,7 @@ void printConfigHelp()
   ],
   "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}.original",
   "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt",
+  "auto_new_line": true
 }
 )";
 }
