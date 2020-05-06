@@ -89,6 +89,13 @@ std::vector<translation> load_translations(json const &config, std::string const
       tr.print = entry["print"];
       tr.repeat = (entry["repeat"] == "false") ? false : true;
       tr.variables = get_variables(entry["variables"]);
+      if(entry["count"] == "scoped") {
+         tr.count = count_type::scoped;
+      } else if(entry["count"] == "global"){
+         tr.count = count_type::global;
+      } else {
+         tr.count = count_type::none;
+      }
       translations.push_back(std::move(tr));
    }
    return translations;

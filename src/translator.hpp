@@ -161,6 +161,49 @@ void replace(std::string *line, std::vector<replacement> const &replacemnets)
                  [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
+void add_translation(std::vector<std::string> &translations, std::string translation,
+                     const Logalizer::Config::translation *trans_config,
+                     std::unordered_map<size_t, size_t> &trans_count)
+{
+   bool repeat_allowed = trans_config->repeat;
+   bool add_translation = true;
+   if (trans_config->count == count_type::scoped) {
+      if (translations.empty()) {
+         trans_count[0]++;
+      }
+      if (translation != translations.back()) {
+         trans_count[translations.size()]++;
+      }
+      else {
+         add_translation = false;
+         trans_count[translations.size() - 1]++;
+      }
+   }
+   else if (trans_config->count == count_type::global) {
+      auto first = std::find(begin(translations), end(translations), translation);
+      if (first != end(translations)) {
+         trans_count[static_cast<size_t>(std::distance(begin(translations), first))]++;
+         add_translation = false;
+      }
+   }
+   if ((add_translation && repeat_allowed) ||
+       std::none_of(cbegin(translations), cend(translations),
+                    [&translation](auto const &entry) { return entry == translation; })) {
+      add_translation = true;
+   }
+   if (add_translation) {
+      translations.emplace_back(translation);
+   }
+}
+
+void update_count(std::vector<std::string> &translations, std::unordered_map<size_t, size_t> &trans_count)
+{
+   for (auto const &[index, count] : trans_count) {
+      std::cout << index << ": " << count << "\n";
+      Utils::replace_all(&translations[index], "${count}", std::to_string(count));
+   }
+}
+
 void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
                     ConfigParser const *parser)
 {
@@ -168,6 +211,7 @@ void translate_file(std::string const &trace_file_name, std::string const &trans
    std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    std::vector<std::string> translations;
+   std::unordered_map<size_t, size_t> trans_count;
 
    auto pre_text = parser->get_wrap_text_pre();
    std::copy(pre_text.begin(), pre_text.end(), std::back_inserter(translations));
@@ -182,15 +226,12 @@ void translate_file(std::string const &trace_file_name, std::string const &trans
 
       auto found = match(line, parser->get_translations(), parser->get_blacklists());
       if (found != cend(parser->get_translations())) {
-         bool repeat_allowed = found->repeat;
          std::vector<std::string> values = fetch_values(line, found->variables);
          std::string translation = fill_values(values, found->print);
-         if (repeat_allowed || std::none_of(cbegin(translations), cend(translations),
-                                            [&translation](auto const &entry) { return entry == translation; })) {
-            translations.emplace_back(translation);
-         }
+         add_translation(translations, translation, &(*found), trans_count);
       }
    }
+   update_count(translations, trans_count);
    auto post_text = parser->get_wrap_text_post();
    std::copy(post_text.begin(), post_text.end(), std::back_inserter(translations));
 

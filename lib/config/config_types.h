@@ -14,9 +14,14 @@ namespace Logalizer::Config {
  * With this information we can extract the middle variable.
  */
 struct variable {
-  public:
    std::string startswith;
    std::string endswith;
+};
+
+enum class count_type {
+   none,
+   scoped,
+   global
 };
 
 /**
@@ -30,6 +35,7 @@ struct translation {
    std::string print;
    std::vector<variable> variables;
    bool repeat = true;
+   count_type count = count_type::none;
 
    [[nodiscard]] bool in(std::string const &line) const
    {
