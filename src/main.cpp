@@ -21,7 +21,7 @@ void printHelp()
                 "\n"
                 "Options:\n"
                 "  -h --help        Show this screen\n"
-                "  --config-help    Show version\n"
+                "  --config-help    Show sample configuration\n"
                 "  --version        Show version\n"
                 "  -c <config>      Translation configuration file. Default is ./config.json\n"
                 "  -f <log>         Log file to be interpreted\n"
