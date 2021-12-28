@@ -120,8 +120,8 @@ void printConfigHelp()
 using namespace Logalizer::Config;
 
 struct CMD_Args {
-   std::string config_file;
-   std::string log_file;
+   const std::string config_file;
+   const std::string log_file;
 };
 
 CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
@@ -151,7 +151,7 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
       printHelp();
       exit(0);
    }
-   auto [dir, dummy] = Utils::dir_file(args.at(0).data());
+   const auto [dir, dummy] = Utils::dir_file(args.at(0).data());
    if (chdir(dir.c_str())) std::cerr << "Could not change directory to " << dir;
    if (config_file.empty()) config_file = "config.json";
    if (struct stat my_stat; stat(config_file.c_str(), &my_stat) != 0) {
@@ -167,7 +167,7 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
    return {config_file, log_file};
 }
 
-void backup_if_not_exists(std::string original, std::string backup)
+void backup_if_not_exists(const std::string &original, const std::string &backup)
 {
    if (original.empty() || backup.empty()) return;
 
@@ -196,28 +196,28 @@ void end_benchmark(std::string const &print)
 
 int main(int argc, char **argv)
 {
-   std::vector<std::string_view> args(argv, argv + argc);
-   CMD_Args cmd_args = parse_cmd_line(args);
+   const std::vector<std::string_view> args(argv, argv + argc);
+   const CMD_Args cmd_args = parse_cmd_line(args);
 
    start_benchmark();
-   auto p = std::make_unique<JsonConfigParser>(cmd_args.config_file);
-   p->load_config_file();
-   p->load_all_configurations();
-   p->update_relative_paths(cmd_args.log_file);
+   JsonConfigParser p(cmd_args.config_file);
+   p.load_config_file();
+   p.load_all_configurations();
+   p.update_relative_paths(cmd_args.log_file);
    end_benchmark("Configuration loaded");
 
-   backup_if_not_exists(cmd_args.log_file, p->get_backup_file());
+   backup_if_not_exists(cmd_args.log_file, p.get_backup_file());
 
    start_benchmark();
-   translate_file(cmd_args.log_file, p->get_translation_file(), p.get());
+   translate_file(cmd_args.log_file, p.get_translation_file(), p);
    end_benchmark("Translation file generated");
 
-   for (auto const &command : p->get_execute_commands()) {
+   for (auto const &command : p.get_execute_commands()) {
       std::cout << "Executing...\n";
       start_benchmark();
       const char *command_str = command.c_str();
       std::cout << command_str << std::endl;
-      if (int returnval = system(command_str)) {
+      if (const int returnval = system(command_str)) {
          std::cerr << TAG_EXECUTE << " : " << command << " execution failed\n";
          return returnval;
       }

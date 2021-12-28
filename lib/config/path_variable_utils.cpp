@@ -28,8 +28,8 @@ std::pair<std::string, std::string> dir_file(std::string const &basefile)
 
 std::string without_extension(std::string const &file)
 {
-   auto [dir, filename] = dir_file(file);
-   size_t end = filename.find_last_of(".");
+   const auto [dir, filename] = dir_file(file);
+   const size_t end = filename.find_last_of(".");
    std::string wo_ext = filename;
    if (end != std::string::npos) wo_ext = filename.substr(0, end);
    return wo_ext;

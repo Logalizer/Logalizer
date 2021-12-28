@@ -20,6 +20,12 @@ constexpr char TAG_AUTO_NEW_LINE[] = "auto_new_line";
 class ConfigParser {
   public:
    ConfigParser(std::string config_file);
+   virtual ~ConfigParser() = default;
+   ConfigParser(ConfigParser&&) = default;
+   ConfigParser(const ConfigParser&) = default;
+   ConfigParser& operator=(const ConfigParser&) = default;
+   ConfigParser& operator=(ConfigParser&&) = default;
+
    virtual void load_config_file() = 0;
    virtual void load_all_configurations() = 0;
    virtual void load_translations() = 0;
@@ -31,7 +37,6 @@ class ConfigParser {
    virtual void load_translation_file() = 0;
    virtual void load_backup_file() = 0;
    virtual void load_auto_new_line() = 0;
-   virtual ~ConfigParser() = default;
    void update_relative_paths(std::string const& log_file);
 
   protected:

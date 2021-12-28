@@ -12,7 +12,7 @@ ConfigParser::ConfigParser(std::string config_file) : config_file_{std::move(con
 void ConfigParser::update_relative_paths(std::string const &log_file)
 {
    using namespace Utils;
-   auto [dir, file] = dir_file(log_file);
+   const auto [dir, file] = dir_file(log_file);
    std::for_each(begin(execute_commands_), end(execute_commands_),
                  [dir = dir, file = file](auto &command) { replace_paths(&command, dir, file); });
 

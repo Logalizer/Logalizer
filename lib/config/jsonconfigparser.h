@@ -5,7 +5,7 @@
 
 namespace Logalizer::Config {
 
-class JsonConfigParser : public ConfigParser {
+class JsonConfigParser final : public ConfigParser {
   public:
    JsonConfigParser(const std::string &config_file = "config.json");
    virtual void load_translations() override;
@@ -17,7 +17,6 @@ class JsonConfigParser : public ConfigParser {
    virtual void load_translation_file() override;
    virtual void load_backup_file() override;
    virtual void load_auto_new_line() override;
-   virtual ~JsonConfigParser() override;
 
    virtual void load_config_file() override;
    virtual void load_all_configurations() override;

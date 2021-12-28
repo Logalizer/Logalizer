@@ -12,7 +12,7 @@ namespace details {
 template <class T>
 T get_value(json const &config, std::string const &name)
 {
-   T value;
+   T value{};
    auto found = config.find(name);
 
    if (found == config.end()) {
@@ -28,7 +28,7 @@ T get_value(json const &config, std::string const &name)
 template <class T>
 T get_value_or(json const &config, std::string const &name, T value)
 {
-   auto found = config.find(name);
+   const auto found = config.find(name);
 
    if (found == config.end()) {
       std::cerr << "Element " << name << " not found\n";
@@ -43,7 +43,7 @@ T get_value_or(json const &config, std::string const &name, T value)
 std::vector<variable> get_variables(json const &jvariables)
 {
    std::vector<variable> variables;
-   for (auto &[key, value] : jvariables.items()) {
+   for (const auto &[key, value] : jvariables.items()) {
       variables.emplace_back(variable{value["startswith"], value["endswith"]});
    }
    return variables;
@@ -54,27 +54,27 @@ std::vector<std::string> load_array(json const &config, std::string const &name)
    std::vector<std::string> array;
    json j_bl = get_value<json>(config, name);
 
-   for (auto &[key, value] : j_bl.items()) {
+   for (const auto &[key, value] : j_bl.items()) {
       array.push_back(value);
    }
    return array;
 }
 
 std::vector<translation> load_translations(json const &config, std::string const &name,
-                                           std::vector<std::string> disabled_categories)
+                                           std::vector<std::string> const &disabled_categories)
 {
    std::vector<translation> translations;
    translation tr;
-   json j_tr = get_value<json>(config, name);
+   const json j_tr = get_value<json>(config, name);
 
-   for (auto &[key, value] : j_tr.items()) {
+   for (const auto &[key, value] : j_tr.items()) {
       // key : 0, 1, 2...
       // value {tranlation_element1, tranlation_element2, ...}
 
-      json entry = value;
-      std::string category = entry["category"];
+      const json entry = value;
+      const std::string category = entry["category"];
 
-      bool is_disabled =
+      const bool is_disabled =
           std::any_of(cbegin(disabled_categories), cend(disabled_categories), [&category](auto const &dCategory) {
              if (category == dCategory) return true;
              return false;
@@ -89,11 +89,13 @@ std::vector<translation> load_translations(json const &config, std::string const
       tr.print = entry["print"];
       tr.repeat = (entry["repeat"] == "false") ? false : true;
       tr.variables = get_variables(entry["variables"]);
-      if(entry["count"] == "scoped") {
+      if (entry["count"] == "scoped") {
          tr.count = count_type::scoped;
-      } else if(entry["count"] == "global"){
+      }
+      else if (entry["count"] == "global") {
          tr.count = count_type::global;
-      } else {
+      }
+      else {
          tr.count = count_type::none;
       }
       translations.push_back(std::move(tr));
@@ -127,10 +129,6 @@ void JsonConfigParser::load_all_configurations()
    load_auto_new_line();
 }
 
-JsonConfigParser::~JsonConfigParser()
-{
-}
-
 void JsonConfigParser::load_translations()
 {
    disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
@@ -150,7 +148,7 @@ void JsonConfigParser::load_blacklists()
 
 void JsonConfigParser::load_delete_lines()
 {
-   std::vector<std::string> deletors = details::load_array(config_, TAG_DELETE_LINES);
+   const std::vector<std::string> deletors = details::load_array(config_, TAG_DELETE_LINES);
 
    for (auto const &entry : deletors) {
       if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
@@ -174,8 +172,8 @@ void JsonConfigParser::load_delete_lines()
 
 void JsonConfigParser::load_replace_words()
 {
-   json j_tr = details::get_value<json>(config_, TAG_REPLACE_WORDS);
-   for (auto &[key, value] : j_tr.items()) {
+   const json j_tr = details::get_value<json>(config_, TAG_REPLACE_WORDS);
+   for (const auto &[key, value] : j_tr.items()) {
       replace_words_.emplace_back(key, value);
    }
 }

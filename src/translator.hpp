@@ -49,7 +49,7 @@ std::string fetch_values_braced(std::string const &line, std::vector<variable> c
       auto end_point = line.find(v.endswith, start_point);
       if (end_point == std::string::npos) continue;
 
-      std::string capture(line.begin() + static_cast<long>(start_point), line.begin() + static_cast<long>(end_point));
+      std::string capture(line.cbegin() + static_cast<long>(start_point), line.cbegin() + static_cast<long>(end_point));
 
       value += capture + ", ";
    }
@@ -68,11 +68,11 @@ std::string capture_values(variable const &var, std::string const &content)
    if (start_point == std::string::npos) return " ";
 
    start_point += var.startswith.size();
-   auto end_point = content.find(var.endswith, start_point);
+   const auto end_point = content.find(var.endswith, start_point);
    if (end_point == std::string::npos) return " ";
 
-   std::string capture(content.begin() + static_cast<long>(start_point),
-                       content.begin() + static_cast<long>(end_point));
+   std::string capture(content.cbegin() + static_cast<long>(start_point),
+                       content.cbegin() + static_cast<long>(end_point));
 
    return capture;
 }
@@ -82,7 +82,7 @@ std::vector<std::string> fetch_values(std::string const &line, std::vector<varia
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
 
-   std::transform(begin(variables), end(variables), std::back_inserter(value),
+   std::transform(cbegin(variables), cend(variables), std::back_inserter(value),
                   std::bind(capture_values, std::placeholders::_1, line));
 
    return value;
@@ -91,16 +91,16 @@ std::vector<std::string> fetch_values(std::string const &line, std::vector<varia
 std::string pack_parameters(std::vector<std::string> const &v)
 {
    auto comma_fold = [](std::string a, std::string b) { return a + ", " + b; };
-   std::string initial_value = "(" + v[0];
-   std::string params = std::accumulate(next(begin(v)), end(v), initial_value, comma_fold) + ")";
+   const std::string initial_value = "(" + v[0];
+   std::string params = std::accumulate(next(cbegin(v)), cend(v), initial_value, comma_fold) + ")";
    return params;
 }
 
 std::string fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
    std::string filled_line = line_to_fill;
-   for (size_t i = 1; i <= values.size(); ++i) {
-      std::string token = "${" + std::to_string(i) + "}";
+   for (size_t i = 1, len = values.size(); i <= len; ++i) {
+      const std::string token = "${" + std::to_string(i) + "}";
       Utils::replace_all(&filled_line, token, values[i - 1]);
    }
    return filled_line;
@@ -109,7 +109,7 @@ std::string fill_values_formatted(std::vector<std::string> const &values, std::s
 std::string fill_values(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
    std::string filled_line;
-   bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
+   const bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
    if (formatted_print) {
       filled_line = fill_values_formatted(values, line_to_fill);
    }
@@ -161,13 +161,12 @@ void replace(std::string *line, std::vector<replacement> const &replacemnets)
                  [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
-void add_translation(std::vector<std::string> &translations, std::string translation,
-                     const Logalizer::Config::translation *trans_config,
-                     std::unordered_map<size_t, size_t> &trans_count)
+void add_translation(std::vector<std::string> &translations, std::string &&translation,
+                     const Logalizer::Config::translation trans_cfg, std::unordered_map<size_t, size_t> &trans_count)
 {
-   bool repeat_allowed = trans_config->repeat;
+   const bool repeat_allowed = trans_cfg.repeat;
    bool add_translation = true;
-   if (trans_config->count == count_type::scoped) {
+   if (trans_cfg.count == count_type::scoped) {
       if (translations.empty()) {
          trans_count[0]++;
       }
@@ -179,10 +178,10 @@ void add_translation(std::vector<std::string> &translations, std::string transla
          trans_count[translations.size() - 1]++;
       }
    }
-   else if (trans_config->count == count_type::global) {
-      auto first = std::find(begin(translations), end(translations), translation);
+   else if (trans_cfg.count == count_type::global) {
+      auto first = std::find(cbegin(translations), cend(translations), translation);
       if (first != end(translations)) {
-         trans_count[static_cast<size_t>(std::distance(begin(translations), first))]++;
+         trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
          add_translation = false;
       }
    }
@@ -192,11 +191,11 @@ void add_translation(std::vector<std::string> &translations, std::string transla
       add_translation = true;
    }
    if (add_translation) {
-      translations.emplace_back(translation);
+      translations.emplace_back(std::move(translation));
    }
 }
 
-void update_count(std::vector<std::string> &translations, std::unordered_map<size_t, size_t> &trans_count)
+void update_count(std::vector<std::string> &translations, std::unordered_map<size_t, size_t> const &trans_count)
 {
    for (auto const &[index, count] : trans_count) {
       std::cout << index << ": " << count << "\n";
@@ -205,44 +204,44 @@ void update_count(std::vector<std::string> &translations, std::unordered_map<siz
 }
 
 void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
-                    ConfigParser const *parser)
+                    ConfigParser const &config)
 {
    std::ifstream trace_file(trace_file_name);
-   std::string trim_file_name = trace_file_name + ".trim.log";
+   const std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    std::vector<std::string> translations;
    std::unordered_map<size_t, size_t> trans_count;
 
-   auto pre_text = parser->get_wrap_text_pre();
-   std::copy(pre_text.begin(), pre_text.end(), std::back_inserter(translations));
+   const auto pre_text = config.get_wrap_text_pre();
+   std::copy(pre_text.cbegin(), pre_text.cend(), std::back_inserter(translations));
 
    for (std::string line; getline(trace_file, line);) {
-      if (is_deleted(line, parser->get_delete_lines(), parser->get_delete_lines_regex())) {
+      if (is_deleted(line, config.get_delete_lines(), config.get_delete_lines_regex())) {
          continue;
       }
 
-      replace(&line, parser->get_replace_words());
+      replace(&line, config.get_replace_words());
       trimmed_file << line << '\n';
 
-      auto found = match(line, parser->get_translations(), parser->get_blacklists());
-      if (found != cend(parser->get_translations())) {
-         std::vector<std::string> values = fetch_values(line, found->variables);
-         std::string translation = fill_values(values, found->print);
-         add_translation(translations, translation, &(*found), trans_count);
+      const auto translation_cfg = match(line, config.get_translations(), config.get_blacklists());
+      if (translation_cfg != cend(config.get_translations())) {
+         std::vector<std::string> values = fetch_values(line, translation_cfg->variables);
+         std::string translation = fill_values(values, translation_cfg->print);
+         add_translation(translations, std::move(translation), (*translation_cfg), trans_count);
       }
    }
    update_count(translations, trans_count);
-   auto post_text = parser->get_wrap_text_post();
-   std::copy(post_text.begin(), post_text.end(), std::back_inserter(translations));
+   const auto post_text = config.get_wrap_text_post();
+   std::copy(post_text.cbegin(), post_text.cend(), std::back_inserter(translations));
 
    Utils::mkdir(Utils::dir_file(translation_file_name).first);
 
    std::ofstream translation_file(translation_file_name);
-   if (parser->get_auto_new_line()) {
-      std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file, "\n"));
+   if (config.get_auto_new_line()) {
+      std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file, "\n"));
    }
    else {
-      std::copy(translations.begin(), translations.end(), std::ostream_iterator<std::string>(translation_file));
+      std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file));
    }
    translation_file.close();
 
