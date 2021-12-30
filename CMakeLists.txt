@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 add_subdirectory(lib/config)
 add_subdirectory(src)
-add_subdirectory(docs)
+# add_subdirectory(docs)
 
 include(CTest)
 
