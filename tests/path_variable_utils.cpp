@@ -1,5 +1,5 @@
-#include "catch.hpp"
 #include "path_variable_utils.h"
+#include "catch.hpp"
 #include "sys/stat.h"
 #include "sys/types.h"
 
@@ -159,9 +159,9 @@ TEST_CASE("is_directory: should return false if file is given")
    std::string const path = "/tmp/logalizer_test";
    std::string const remove_cmd = std::string("rm -r ") + path;
    std::string const touch_cmd = std::string("touch ") + path;
-   system(touch_cmd.c_str());
+   REQUIRE(0 == system(touch_cmd.c_str()));
    CHECK_FALSE(is_directory(path));
-   system(remove_cmd.c_str());
+   REQUIRE(0 == system(remove_cmd.c_str()));
 }
 
 TEST_CASE("is_directory: should return false if nothing is given")
@@ -176,7 +176,7 @@ TEST_CASE("mkdir: should make directory")
    std::string const remove_cmd = std::string("rm -r ") + path;
    CHECK(mkdir(path));
    CHECK(is_directory(path));
-   system(remove_cmd.c_str());
+   REQUIRE(0 == system(remove_cmd.c_str()));
 }
 
 TEST_CASE("mkdir: should make directory recursively by default")
@@ -186,7 +186,7 @@ TEST_CASE("mkdir: should make directory recursively by default")
    std::string const remove_cmd = std::string("rm -r ") + path;
    CHECK(mkdir(recursive_path));
    CHECK(is_directory(recursive_path));
-   system(remove_cmd.c_str());
+   REQUIRE(0 == system(remove_cmd.c_str()));
 }
 
 TEST_CASE("mkdir: should not fail if directory already exists")
@@ -201,8 +201,8 @@ TEST_CASE("mkdir: should fail if a file exists with the same name as directory")
    std::string const path = "/tmp/logalizer_test";
    std::string const remove_cmd = std::string("rm -r ") + path;
    std::string const touch_cmd = std::string("touch ") + path;
-   system(touch_cmd.c_str());
+   REQUIRE(system(touch_cmd.c_str()) == 0);
    CHECK_FALSE(is_directory(path));
    CHECK_FALSE(mkdir(path));
-   system(remove_cmd.c_str());
+   REQUIRE(0 == system(remove_cmd.c_str()));
 }
