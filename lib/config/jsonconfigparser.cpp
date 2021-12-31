@@ -109,6 +109,11 @@ JsonConfigParser::JsonConfigParser(std::string const &config_file) : ConfigParse
    if (config_file_.empty()) config_file_ = "config.json";
 }
 
+JsonConfigParser::JsonConfigParser(nlohmann::json config) : ConfigParser("")
+{
+   config_ = std::move(config);
+}
+
 void JsonConfigParser::load_config_file()
 {
    std::ifstream file(config_file_);
@@ -137,13 +142,25 @@ void JsonConfigParser::load_translations()
 
 void JsonConfigParser::load_wrap_text()
 {
-   wrap_text_pre_ = details::load_array(config_, TAG_WRAPTEXT_PRE);
-   wrap_text_post_ = details::load_array(config_, TAG_WRAPTEXT_POST);
+   try {
+      wrap_text_pre_ = std::vector<std::string>(config_[TAG_WRAPTEXT_PRE]);
+   }
+   catch (...) {
+   }
+   try {
+      wrap_text_post_ = std::vector<std::string>(config_[TAG_WRAPTEXT_POST]);
+   }
+   catch (...) {
+   }
 }
 
 void JsonConfigParser::load_blacklists()
 {
-   blacklists_ = details::load_array(config_, TAG_BLACKLIST);
+   try {
+      blacklists_ = std::vector<std::string>(config_[TAG_BLACKLIST]);
+   }
+   catch (...) {
+   }
 }
 
 void JsonConfigParser::load_delete_lines()

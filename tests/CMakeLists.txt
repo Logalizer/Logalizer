@@ -2,6 +2,7 @@ project(Logalizer_test VERSION 1.0 LANGUAGES CXX)
 
 add_executable(${PROJECT_NAME}
     main.cpp
+    jsonconfigparser.cpp
     path_variable_utils.cpp)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
