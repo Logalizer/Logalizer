@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "configparser.h"
 
 namespace Logalizer::Config {
 
@@ -40,11 +41,12 @@ T get_value_or(json const &config, std::string const &name, T value)
    return value;
 }
 
-std::vector<variable> get_variables(json const &jvariables)
+std::vector<variable> get_variables(json const &config)
 {
    std::vector<variable> variables;
+   const auto &jvariables = get_value_or(config, "variables", json{});
    for (const auto &[key, value] : jvariables.items()) {
-      variables.emplace_back(variable{value["startswith"], value["endswith"]});
+      variables.emplace_back(variable{value.at("startswith"), value.at("endswith")});
    }
    return variables;
 }
@@ -64,7 +66,6 @@ std::vector<translation> load_translations(json const &config, std::string const
                                            std::vector<std::string> const &disabled_categories)
 {
    std::vector<translation> translations;
-   translation tr;
    const json j_tr = get_value<json>(config, name);
 
    for (const auto &[key, value] : j_tr.items()) {
@@ -72,7 +73,7 @@ std::vector<translation> load_translations(json const &config, std::string const
       // value {tranlation_element1, tranlation_element2, ...}
 
       const json entry = value;
-      const std::string category = entry["category"];
+      const std::string category = get_value_or(entry, TAG_CATEGORY, std::string{});
 
       const bool is_disabled =
           std::any_of(cbegin(disabled_categories), cend(disabled_categories), [&category](auto const &dCategory) {
@@ -84,15 +85,25 @@ std::vector<translation> load_translations(json const &config, std::string const
       // translations.emplace_back(entry["category"], loadArray(entry, "patterns"), entry["print"],
       //                                getVariables(entry["variables"]));
 
-      tr.category = entry["category"];
-      tr.patterns = load_array(entry, "patterns");
-      tr.print = entry["print"];
-      tr.repeat = (entry["repeat"] == "false") ? false : true;
-      tr.variables = get_variables(entry["variables"]);
-      if (entry["count"] == "scoped") {
+      translation tr;
+      tr.category = category;
+      tr.patterns = load_array(entry, TAG_PATTERNS);
+      if (tr.patterns.empty()) {
+         std::cerr << "[warn]: patterns not defined or empty\n";
+         continue;
+      }
+      tr.print = get_value_or(entry, TAG_PRINT, std::string{});
+      if (tr.print.empty()) {
+         std::cerr << "[warn]: print not defined or empty\n";
+         continue;
+      }
+      tr.repeat = get_value_or(entry, TAG_REPEAT, true);
+      tr.variables = get_variables(entry);
+      std::string ct = get_value_or(entry, TAG_COUNT, std::string{});
+      if (ct == TAG_COUNT_SCOPED) {
          tr.count = count_type::scoped;
       }
-      else if (entry["count"] == "global") {
+      else if (ct == TAG_COUNT_GLOBAL) {
          tr.count = count_type::global;
       }
       else {

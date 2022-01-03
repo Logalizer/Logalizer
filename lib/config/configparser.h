@@ -5,7 +5,7 @@
 
 namespace Logalizer::Config {
 
-constexpr const char TAG_TRANSLATIONS[] = "translations";
+constexpr char TAG_TRANSLATIONS[] = "translations";
 constexpr char TAG_WRAPTEXT_PRE[] = "wrap_text_pre";
 constexpr char TAG_WRAPTEXT_POST[] = "wrap_text_post";
 constexpr char TAG_DISABLE_CATEGORY[] = "disable_category";
@@ -16,6 +16,14 @@ constexpr char TAG_EXECUTE[] = "execute";
 constexpr char TAG_TRANSLATION_FILE[] = "translation_file";
 constexpr char TAG_BACKUP_FILE[] = "backup_file";
 constexpr char TAG_AUTO_NEW_LINE[] = "auto_new_line";
+constexpr char TAG_CATEGORY[] = "category";
+constexpr char TAG_PATTERNS[] = "patterns";
+constexpr char TAG_PRINT[] = "print";
+constexpr char TAG_VARIABLES[] = "variables";
+constexpr char TAG_REPEAT[] = "repeat";
+constexpr char TAG_COUNT[] = "count";
+constexpr char TAG_COUNT_GLOBAL[] = "global";
+constexpr char TAG_COUNT_SCOPED[] = "scoped";
 
 class ConfigParser {
   public:
