@@ -19,4 +19,46 @@ void ConfigParser::update_relative_paths(std::string const &log_file)
    replace_paths(&backup_file_, dir, file);
    replace_paths(&translation_file_, dir, file);
 }
+
+void ConfigParser::load_configurations()
+{
+   load_translations();
+   load_translation_file();
+   try {
+      load_wrap_text();
+   }
+   catch (...) {
+   }
+   try {
+      load_blacklists();
+   }
+   catch (...) {
+   }
+   try {
+      load_delete_lines();
+   }
+   catch (...) {
+   }
+   try {
+      load_replace_words();
+   }
+   catch (...) {
+   }
+   try {
+      load_execute();
+   }
+   catch (...) {
+   }
+   try {
+      load_backup_file();
+   }
+   catch (...) {
+   }
+   try {
+      load_auto_new_line();
+   }
+   catch (...) {
+      auto_new_line_ = true;
+   }
+}
 }  // namespace Logalizer::Config

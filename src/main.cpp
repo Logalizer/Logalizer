@@ -201,8 +201,8 @@ int main(int argc, char **argv)
 
    start_benchmark();
    JsonConfigParser p(cmd_args.config_file);
-   p.load_config_file();
-   p.load_all_configurations();
+   p.read_config_file();
+   p.load_configurations();
    p.update_relative_paths(cmd_args.log_file);
    end_benchmark("Configuration loaded");
 

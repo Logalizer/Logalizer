@@ -34,8 +34,7 @@ class ConfigParser {
    ConfigParser& operator=(const ConfigParser&) = default;
    ConfigParser& operator=(ConfigParser&&) = default;
 
-   virtual void load_config_file() = 0;
-   virtual void load_all_configurations() = 0;
+   virtual void read_config_file() = 0;
    virtual void load_translations() = 0;
    virtual void load_wrap_text() = 0;
    virtual void load_blacklists() = 0;
@@ -45,6 +44,7 @@ class ConfigParser {
    virtual void load_translation_file() = 0;
    virtual void load_backup_file() = 0;
    virtual void load_auto_new_line() = 0;
+   void load_configurations();
    void update_relative_paths(std::string const& log_file);
 
   protected:

@@ -125,14 +125,14 @@ JsonConfigParser::JsonConfigParser(nlohmann::json config) : ConfigParser("")
    config_ = std::move(config);
 }
 
-void JsonConfigParser::load_config_file()
+void JsonConfigParser::read_config_file()
 {
    std::ifstream file(config_file_);
    file >> config_;
    std::cout << "configuration loaded from " << config_file_ << '\n';
 }
 
-void JsonConfigParser::load_all_configurations()
+void JsonConfigParser::load_configurations()
 {
    load_translations();
    load_wrap_text();

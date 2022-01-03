@@ -465,3 +465,141 @@ TEST_CASE("translations repeat")
    CHECK(trs.at(1).repeat == false);
    CHECK(trs.at(2).repeat == true);
 }
+
+TEST_CASE("read full configuration")
+{
+   auto j = R"( {
+    "translations": [
+     {
+       "category": "category_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+       "count": "global"
+     }
+    ],
+    "wrap_text_pre": [
+      "pre1",
+      "pre2"
+    ],
+    "wrap_text_post": [
+      "post1",
+      "post2"
+    ],
+    "blacklist": [
+      "bl1",
+      "bl2"
+    ],
+    "delete_lines": [
+      "dl1",
+      "dl2",
+      "dl_regex.*"
+    ],
+    "replace_words": {
+      "old1": "new1",
+      "old2": "new2"
+    },
+    "execute": [
+      "cmd1",
+      "cmd2"
+    ],
+    "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt",
+    "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_backup.txt"
+  }
+  )"_json;
+
+   JsonConfigParser parser(j);
+   parser.load_configurations();
+   CHECK(parser.get_auto_new_line() == true);
+   CHECK(parser.get_wrap_text_pre().size() == 2);
+   CHECK(parser.get_wrap_text_post().size() == 2);
+   CHECK(parser.get_blacklists().size() == 2);
+   CHECK(parser.get_delete_lines().size() == 2);
+   CHECK(parser.get_delete_lines_regex().size() == 1);
+   CHECK(parser.get_replace_words().size() == 2);
+   CHECK(parser.get_execute_commands().size() == 2);
+   CHECK_FALSE(parser.get_translation_file().empty());
+   CHECK_FALSE(parser.get_backup_file().empty());
+
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.category == "category_name");
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   CHECK(tr.repeat == true);
+   auto variables = tr.variables;
+   CHECK(variables.at(0).startswith == "v1startswith");
+   CHECK(variables.at(0).endswith == "v1endswith");
+   CHECK(variables.at(1).startswith == "v2startswith");
+   CHECK(variables.at(1).endswith == "v2endswith");
+   CHECK(tr.count == count_type::global);
+}
+
+TEST_CASE("read minimal mandatory configuration")
+{
+   auto j = R"( {
+    "translations": [
+     {
+       "category": "category_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+       "count": "global"
+     }
+    ],
+    "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
+  }
+  )"_json;
+
+   JsonConfigParser parser(j);
+   parser.load_configurations();
+   CHECK(parser.get_auto_new_line() == true);
+   CHECK(parser.get_wrap_text_pre().empty());
+   CHECK(parser.get_wrap_text_post().empty());
+   CHECK(parser.get_blacklists().empty());
+   CHECK(parser.get_delete_lines().empty());
+   CHECK(parser.get_delete_lines_regex().empty());
+   CHECK(parser.get_replace_words().empty());
+   CHECK(parser.get_execute_commands().empty());
+   CHECK_FALSE(parser.get_translation_file().empty());
+   CHECK(parser.get_backup_file().empty());
+
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.category == "category_name");
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   CHECK(tr.repeat == true);
+   auto variables = tr.variables;
+   CHECK(variables.at(0).startswith == "v1startswith");
+   CHECK(variables.at(0).endswith == "v1endswith");
+   CHECK(variables.at(1).startswith == "v2startswith");
+   CHECK(variables.at(1).endswith == "v2endswith");
+   CHECK(tr.count == count_type::global);
+}
