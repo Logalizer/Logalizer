@@ -1,11 +1,8 @@
-#pragma once
+#include "translator.h"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <regex>
-#include <string>
-#include <vector>
-#include "jsonconfigparser.h"
+#include <numeric>
 #include "path_variable_utils.h"
 
 using namespace Logalizer::Config;

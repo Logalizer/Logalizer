@@ -1,10 +1,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include "LogalizerConfig.h"
 #include "jsonconfigparser.h"
-#include "translator.hpp"
+#include "path_variable_utils.h"
+#include "translator.h"
 
 void printHelp()
 {

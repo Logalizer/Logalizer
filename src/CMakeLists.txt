@@ -93,7 +93,7 @@ configure_file("${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.h.in"
 # Compile and Link
 #
 
-add_executable(${PROJECT_NAME} "main.cpp" "translator.hpp")
+add_executable(${PROJECT_NAME} "main.cpp" "translator.cpp")
 
 # add the binary tree to the search path for include configure headers
 target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_BINARY_DIR}")
