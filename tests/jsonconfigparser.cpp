@@ -2,12 +2,6 @@
 #include "catch.hpp"
 #include "config_types.h"
 
-#include <execinfo.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
 using namespace Logalizer::Config;
 using nlohmann::json;
 
@@ -260,20 +254,6 @@ TEST_CASE("auto_new_line unavailable")
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_auto_new_line());
    CHECK(parser.get_auto_new_line() == true);
-}
-
-void handler(int sig)
-{
-   void* array[10];
-   size_t size;
-
-   // get void*'s for all entries on the stack
-   size = backtrace(array, 10);
-
-   // print out all the frames to stderr
-   fprintf(stderr, "Error: signal %d:\n", sig);
-   backtrace_symbols_fd(array, size, STDERR_FILENO);
-   exit(1);
 }
 
 TEST_CASE("translations one translation available")
