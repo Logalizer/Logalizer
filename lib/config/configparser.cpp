@@ -23,8 +23,14 @@ void ConfigParser::update_relative_paths(std::string const &log_file)
 void ConfigParser::load_configurations()
 {
    try {
-      load_translations();
+      // disabled categories are used in translations
+      load_disabled_categories();
+   }
+   catch (...) {
+   }
+   try {
       load_translation_file();
+      load_translations();
    }
    catch (std::exception &e) {
       std::cout << e.what() << '\n';

@@ -9,6 +9,7 @@ class JsonConfigParser final : public ConfigParser {
   public:
    JsonConfigParser(const std::string &config_file = "config.json");
    JsonConfigParser(nlohmann::json config);
+   virtual void load_disabled_categories() override;
    virtual void load_translations() override;
    virtual void load_wrap_text() override;
    virtual void load_blacklists() override;

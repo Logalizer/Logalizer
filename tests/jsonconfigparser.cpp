@@ -166,6 +166,30 @@ TEST_CASE("execute unavailable")
    CHECK(parser.get_execute_commands() == std::vector<std::string>({}));
 }
 
+TEST_CASE("disable_category available")
+{
+   auto j = R"(
+  {
+    "disable_category": [
+      "d1",
+      "d2"
+    ]
+  }
+  )"_json;
+
+   JsonConfigParser parser(j);
+   parser.load_disabled_categories();
+   CHECK(parser.get_disabled_categories() == std::vector<std::string>({"d1", "d2"}));
+}
+
+TEST_CASE("disable_category unavailable")
+{
+   auto j = R"( { })"_json;
+   JsonConfigParser parser(j);
+   CHECK_THROWS(parser.load_disabled_categories());
+   CHECK(parser.get_disabled_categories() == std::vector<std::string>({}));
+}
+
 TEST_CASE("translation_file available")
 {
    auto j = R"(
@@ -385,6 +409,7 @@ TEST_CASE("translations category disabled")
   )"_json;
 
    JsonConfigParser parser(j);
+   parser.load_disabled_categories();
    parser.load_translations();
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);

@@ -35,6 +35,7 @@ class ConfigParser {
    ConfigParser& operator=(ConfigParser&&) = default;
 
    virtual void read_config_file() = 0;
+   virtual void load_disabled_categories() = 0;
    virtual void load_translations() = 0;
    virtual void load_wrap_text() = 0;
    virtual void load_blacklists() = 0;

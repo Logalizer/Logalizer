@@ -117,13 +117,13 @@ void JsonConfigParser::read_config_file()
    std::cout << "configuration loaded from " << config_file_ << '\n';
 }
 
+void JsonConfigParser::load_disabled_categories()
+{
+   disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
+}
+
 void JsonConfigParser::load_translations()
 {
-   try {
-      disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
-   }
-   catch (...) {
-   }
    translations_ = details::load_translations(config_, TAG_TRANSLATIONS, disabled_categories_);
 }
 
