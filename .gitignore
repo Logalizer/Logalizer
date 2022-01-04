@@ -79,3 +79,10 @@ build
 # External Libs
 #--------------
 #lib/config/external
+
+# LSP
+#---
+compile_commands.json
+.cache
+.ccls-cache
+.ccls

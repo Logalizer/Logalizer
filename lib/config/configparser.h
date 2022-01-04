@@ -44,7 +44,7 @@ class ConfigParser {
    virtual void load_translation_file() = 0;
    virtual void load_backup_file() = 0;
    virtual void load_auto_new_line() = 0;
-   void load_configurations();
+   virtual void load_configurations() final;
    void update_relative_paths(std::string const& log_file);
 
   protected:
@@ -59,7 +59,7 @@ class ConfigParser {
    std::vector<std::string> execute_commands_;
    std::string translation_file_;
    std::string backup_file_;
-   bool auto_new_line_;
+   bool auto_new_line_ = true;
 
    std::string config_file_;
 

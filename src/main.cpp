@@ -202,7 +202,13 @@ int main(int argc, char **argv)
    start_benchmark();
    JsonConfigParser p(cmd_args.config_file);
    p.read_config_file();
-   p.load_configurations();
+   try {
+      p.load_configurations();
+   }
+   catch (...) {
+      std::cerr << "Loading configuration failed";
+      exit(2);
+   }
    p.update_relative_paths(cmd_args.log_file);
    end_benchmark("Configuration loaded");
 

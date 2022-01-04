@@ -108,7 +108,7 @@ TEST_CASE("delete_lines unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
-   parser.load_delete_lines();
+   CHECK_THROWS(parser.load_delete_lines());
    CHECK(parser.get_delete_lines() == std::vector<std::string>({}));
    CHECK(parser.get_delete_lines_regex().empty());
 }
@@ -138,7 +138,7 @@ TEST_CASE("replace_words unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
-   parser.load_replace_words();
+   CHECK_THROWS(parser.load_replace_words());
    CHECK(parser.get_replace_words().empty());
 }
 
@@ -162,7 +162,7 @@ TEST_CASE("execute unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
-   parser.load_execute();
+   CHECK_THROWS(parser.load_execute());
    CHECK(parser.get_execute_commands() == std::vector<std::string>({}));
 }
 
@@ -183,7 +183,7 @@ TEST_CASE("translation_file unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
-   parser.load_translation_file();
+   CHECK_THROWS(parser.load_translation_file());
    CHECK(parser.get_translation_file() == "");
 }
 
@@ -204,7 +204,7 @@ TEST_CASE("backup_file unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
-   parser.load_backup_file();
+   CHECK_THROWS(parser.load_backup_file());
    CHECK(parser.get_backup_file() == "");
 }
 
@@ -234,7 +234,7 @@ TEST_CASE("auto_new_line unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
-   parser.load_auto_new_line();
+   CHECK_THROWS(parser.load_auto_new_line());
    CHECK(parser.get_auto_new_line() == true);
 }
 
@@ -602,4 +602,11 @@ TEST_CASE("read minimal mandatory configuration")
    CHECK(variables.at(1).startswith == "v2startswith");
    CHECK(variables.at(1).endswith == "v2endswith");
    CHECK(tr.count == count_type::global);
+}
+
+TEST_CASE("translations unavailable")
+{
+   auto j = R"( { })"_json;
+   JsonConfigParser parser(j);
+   CHECK_THROWS(parser.load_translations());
 }

@@ -22,8 +22,14 @@ void ConfigParser::update_relative_paths(std::string const &log_file)
 
 void ConfigParser::load_configurations()
 {
-   load_translations();
-   load_translation_file();
+   try {
+      load_translations();
+      load_translation_file();
+   }
+   catch (std::exception &e) {
+      std::cout << e.what() << '\n';
+      throw;
+   }
    try {
       load_wrap_text();
    }

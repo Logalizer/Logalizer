@@ -20,7 +20,6 @@ class JsonConfigParser final : public ConfigParser {
    virtual void load_auto_new_line() override;
 
    virtual void read_config_file() override;
-   virtual void load_configurations();
 
   private:
    nlohmann::json config_;

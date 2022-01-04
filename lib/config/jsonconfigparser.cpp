@@ -8,36 +8,20 @@ namespace Logalizer::Config {
 
 using json = nlohmann::json;
 
+/*
+ * config.at() throws an exception if tag not found
+ * ConfigParser will decide which exceptions to ignore
+ */
+
 namespace details {
-
-template <class T>
-T get_value(json const &config, std::string const &name)
-{
-   T value{};
-   auto found = config.find(name);
-
-   if (found == config.end()) {
-      std::cerr << "Element " << name << " not found\n";
-   }
-   else {
-      value = found.value();
-   }
-
-   return value;
-}
 
 template <class T>
 T get_value_or(json const &config, std::string const &name, T value)
 {
    const auto found = config.find(name);
-
-   if (found == config.end()) {
-      std::cerr << "Element " << name << " not found\n";
-   }
-   else {
+   if (found != config.end()) {
       value = found.value();
    }
-
    return value;
 }
 
@@ -45,8 +29,8 @@ std::vector<variable> get_variables(json const &config)
 {
    std::vector<variable> variables;
    const auto &jvariables = get_value_or(config, "variables", json{});
-   for (const auto &[key, value] : jvariables.items()) {
-      variables.emplace_back(variable{value.at("startswith"), value.at("endswith")});
+   for (const auto &item : jvariables.items()) {
+      variables.emplace_back(variable{item.value().at("startswith"), item.value().at("endswith")});
    }
    return variables;
 }
@@ -54,10 +38,10 @@ std::vector<variable> get_variables(json const &config)
 std::vector<std::string> load_array(json const &config, std::string const &name)
 {
    std::vector<std::string> array;
-   json j_bl = get_value<json>(config, name);
+   json jarray = config.at(name);
 
-   for (const auto &[key, value] : j_bl.items()) {
-      array.push_back(value);
+   for (const auto &item : jarray.items()) {
+      array.push_back(item.value());
    }
    return array;
 }
@@ -66,14 +50,12 @@ std::vector<translation> load_translations(json const &config, std::string const
                                            std::vector<std::string> const &disabled_categories)
 {
    std::vector<translation> translations;
-   const json j_tr = get_value<json>(config, name);
 
-   for (const auto &[key, value] : j_tr.items()) {
-      // key : 0, 1, 2...
-      // value {tranlation_element1, tranlation_element2, ...}
+   for (const auto &item : config.at(name).items()) {
+      // item {tranlation_element1, tranlation_element2, ...}
 
-      const json entry = value;
-      const std::string category = get_value_or(entry, TAG_CATEGORY, std::string{});
+      const json &jtranslation = item.value();
+      const std::string category = get_value_or(jtranslation, TAG_CATEGORY, std::string{});
 
       const bool is_disabled =
           std::any_of(cbegin(disabled_categories), cend(disabled_categories), [&category](auto const &dCategory) {
@@ -82,24 +64,27 @@ std::vector<translation> load_translations(json const &config, std::string const
           });
       if (is_disabled) continue;
 
-      // translations.emplace_back(entry["category"], loadArray(entry, "patterns"), entry["print"],
-      //                                getVariables(entry["variables"]));
-
       translation tr;
       tr.category = category;
-      tr.patterns = load_array(entry, TAG_PATTERNS);
-      if (tr.patterns.empty()) {
-         std::cerr << "[warn]: patterns not defined or empty\n";
+      try {
+         tr.patterns = load_array(jtranslation, TAG_PATTERNS);
+      }
+      catch (...) {
+         std::cerr << "[warn]: patterns not defined\n";
          continue;
       }
-      tr.print = get_value_or(entry, TAG_PRINT, std::string{});
+      if (tr.patterns.empty()) {
+         std::cerr << "[warn]: patterns empty\n";
+         continue;
+      }
+      tr.print = get_value_or(jtranslation, TAG_PRINT, std::string{});
       if (tr.print.empty()) {
          std::cerr << "[warn]: print not defined or empty\n";
          continue;
       }
-      tr.repeat = get_value_or(entry, TAG_REPEAT, true);
-      tr.variables = get_variables(entry);
-      std::string ct = get_value_or(entry, TAG_COUNT, std::string{});
+      tr.repeat = get_value_or(jtranslation, TAG_REPEAT, true);
+      tr.variables = get_variables(jtranslation);
+      std::string ct = get_value_or(jtranslation, TAG_COUNT, std::string{});
       if (ct == TAG_COUNT_SCOPED) {
          tr.count = count_type::scoped;
       }
@@ -132,34 +117,25 @@ void JsonConfigParser::read_config_file()
    std::cout << "configuration loaded from " << config_file_ << '\n';
 }
 
-void JsonConfigParser::load_configurations()
-{
-   load_translations();
-   load_wrap_text();
-   load_blacklists();
-   load_delete_lines();
-   load_replace_words();
-   load_execute();
-   load_translation_file();
-   load_backup_file();
-   load_auto_new_line();
-}
-
 void JsonConfigParser::load_translations()
 {
-   disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
+   try {
+      disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
+   }
+   catch (...) {
+   }
    translations_ = details::load_translations(config_, TAG_TRANSLATIONS, disabled_categories_);
 }
 
 void JsonConfigParser::load_wrap_text()
 {
    try {
-      wrap_text_pre_ = std::vector<std::string>(config_[TAG_WRAPTEXT_PRE]);
+      wrap_text_pre_ = std::vector<std::string>(config_.at(TAG_WRAPTEXT_PRE));
    }
    catch (...) {
    }
    try {
-      wrap_text_post_ = std::vector<std::string>(config_[TAG_WRAPTEXT_POST]);
+      wrap_text_post_ = std::vector<std::string>(config_.at(TAG_WRAPTEXT_POST));
    }
    catch (...) {
    }
@@ -168,7 +144,7 @@ void JsonConfigParser::load_wrap_text()
 void JsonConfigParser::load_blacklists()
 {
    try {
-      blacklists_ = std::vector<std::string>(config_[TAG_BLACKLIST]);
+      blacklists_ = std::vector<std::string>(config_.at(TAG_BLACKLIST));
    }
    catch (...) {
    }
@@ -189,7 +165,7 @@ void JsonConfigParser::load_delete_lines()
    }
 
    if (delete_lines_regex_.size()) {
-      std::cerr << "[Warning] Use of regex in " << TAG_DELETE_LINES << " is a lot slower. Use normal search instead,\n";
+      std::cerr << "[warn] Use of regex in " << TAG_DELETE_LINES << " is a lot slower. Use normal search instead,\n";
       for (auto const &entry : deletors) {
          if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
             std::cout << "  " << entry << '\n';
@@ -200,7 +176,7 @@ void JsonConfigParser::load_delete_lines()
 
 void JsonConfigParser::load_replace_words()
 {
-   const json j_tr = details::get_value<json>(config_, TAG_REPLACE_WORDS);
+   const json j_tr = config_.at(TAG_REPLACE_WORDS);
    for (const auto &[key, value] : j_tr.items()) {
       replace_words_.emplace_back(key, value);
    }
@@ -213,17 +189,17 @@ void JsonConfigParser::load_execute()
 
 void JsonConfigParser::load_translation_file()
 {
-   translation_file_ = details::get_value<std::string>(config_, TAG_TRANSLATION_FILE);
+   translation_file_ = config_.at(TAG_TRANSLATION_FILE);
 }
 
 void JsonConfigParser::load_backup_file()
 {
-   backup_file_ = details::get_value<std::string>(config_, TAG_BACKUP_FILE);
+   backup_file_ = config_.at(TAG_BACKUP_FILE);
 }
 
 void JsonConfigParser::load_auto_new_line()
 {
-   auto_new_line_ = details::get_value_or<bool>(config_, TAG_AUTO_NEW_LINE, true);
+   auto_new_line_ = config_.at(TAG_AUTO_NEW_LINE);
 }
 
 }  // namespace Logalizer::Config
