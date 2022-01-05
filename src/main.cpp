@@ -218,7 +218,8 @@ int main(int argc, char **argv)
    backup_if_not_exists(cmd_args.log_file, p.get_backup_file());
 
    start_benchmark();
-   translate_file(cmd_args.log_file, p.get_translation_file(), p);
+   Translator tr;
+   tr.translate_file(cmd_args.log_file, p.get_translation_file(), p);
    end_benchmark("Translation file generated");
 
    for (auto const &command : p.get_execute_commands()) {

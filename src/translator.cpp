@@ -7,7 +7,7 @@
 
 using namespace Logalizer::Config;
 
-std::string fetch_values_regex(std::string const &line, std::vector<variable> const &variables)
+std::string Translator::fetch_values_regex(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
    if (variables.size() == 0) return value;
@@ -31,7 +31,7 @@ std::string fetch_values_regex(std::string const &line, std::vector<variable> co
    return value;
 }
 
-std::string fetch_values_braced(std::string const &line, std::vector<variable> const &variables)
+std::string Translator::fetch_values_braced(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
    if (variables.size() == 0) return value;
@@ -59,7 +59,7 @@ std::string fetch_values_braced(std::string const &line, std::vector<variable> c
    return value;
 }
 
-std::string capture_values(variable const &var, std::string const &content)
+std::string Translator::capture_values(variable const &var, std::string const &content)
 {
    auto start_point = content.find(var.startswith);
    if (start_point == std::string::npos) return " ";
@@ -74,18 +74,18 @@ std::string capture_values(variable const &var, std::string const &content)
    return capture;
 }
 
-std::vector<std::string> fetch_values(std::string const &line, std::vector<variable> const &variables)
+std::vector<std::string> Translator::fetch_values(std::string const &line, std::vector<variable> const &variables)
 {
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
 
    std::transform(cbegin(variables), cend(variables), std::back_inserter(value),
-                  std::bind(capture_values, std::placeholders::_1, line));
+                  [&line, this](auto const &var) { return capture_values(var, line); });
 
    return value;
 }
 
-std::string pack_parameters(std::vector<std::string> const &v)
+std::string Translator::pack_parameters(std::vector<std::string> const &v)
 {
    auto comma_fold = [](std::string a, std::string b) { return a + ", " + b; };
    const std::string initial_value = "(" + v[0];
@@ -93,7 +93,7 @@ std::string pack_parameters(std::vector<std::string> const &v)
    return params;
 }
 
-std::string fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill)
+std::string Translator::fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
    std::string filled_line = line_to_fill;
    for (size_t i = 1, len = values.size(); i <= len; ++i) {
@@ -103,7 +103,7 @@ std::string fill_values_formatted(std::vector<std::string> const &values, std::s
    return filled_line;
 }
 
-std::string fill_values(std::vector<std::string> const &values, std::string const &line_to_fill)
+std::string Translator::fill_values(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
    std::string filled_line;
    const bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
@@ -119,14 +119,14 @@ std::string fill_values(std::vector<std::string> const &values, std::string cons
    return filled_line;
 }
 
-[[nodiscard]] bool is_blacklisted(std::string const &line, std::vector<std::string> const &blacklists)
+[[nodiscard]] bool Translator::is_blacklisted(std::string const &line, std::vector<std::string> const &blacklists)
 {
    return std::any_of(cbegin(blacklists), cend(blacklists),
                       [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
 }
 
-auto match(std::string const &line, std::vector<translation> const &translations,
-           std::vector<std::string> const &blacklists)
+auto Translator::match(std::string const &line, std::vector<translation> const &translations,
+                       std::vector<std::string> const &blacklists)
 {
    auto found = std::find_if(cbegin(translations), cend(translations), [&line](auto const &tr) { return tr.in(line); });
    if (found != cend(translations)) {
@@ -138,8 +138,8 @@ auto match(std::string const &line, std::vector<translation> const &translations
    return found;
 }
 
-[[nodiscard]] bool is_deleted(std::string const &line, std::vector<std::string> const &delete_lines,
-                              std::vector<std::regex> const &delete_lines_regex) noexcept
+[[nodiscard]] bool Translator::is_deleted(std::string const &line, std::vector<std::string> const &delete_lines,
+                                          std::vector<std::regex> const &delete_lines_regex) noexcept
 {
    bool deleted = std::any_of(cbegin(delete_lines), cend(delete_lines),
                               [&line](auto const &dl) { return line.find(dl) != std::string::npos; });
@@ -152,14 +152,15 @@ auto match(std::string const &line, std::vector<translation> const &translations
    return deleted;
 }
 
-void replace(std::string *line, std::vector<replacement> const &replacemnets)
+void Translator::replace(std::string *line, std::vector<replacement> const &replacemnets)
 {
    std::for_each(cbegin(replacemnets), cend(replacemnets),
                  [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
-void add_translation(std::vector<std::string> &translations, std::string &&translation,
-                     const Logalizer::Config::translation trans_cfg, std::unordered_map<size_t, size_t> &trans_count)
+void Translator::add_translation(std::vector<std::string> &translations, std::string &&translation,
+                                 const Logalizer::Config::translation trans_cfg,
+                                 std::unordered_map<size_t, size_t> &trans_count)
 {
    const bool repeat_allowed = trans_cfg.repeat;
    bool add_translation = true;
@@ -192,7 +193,8 @@ void add_translation(std::vector<std::string> &translations, std::string &&trans
    }
 }
 
-void update_count(std::vector<std::string> &translations, std::unordered_map<size_t, size_t> const &trans_count)
+void Translator::update_count(std::vector<std::string> &translations,
+                              std::unordered_map<size_t, size_t> const &trans_count)
 {
    for (auto const &[index, count] : trans_count) {
       std::cout << index << ": " << count << "\n";
@@ -200,8 +202,8 @@ void update_count(std::vector<std::string> &translations, std::unordered_map<siz
    }
 }
 
-void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
-                    ConfigParser const &config)
+void Translator::translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
+                                ConfigParser const &config)
 {
    std::ifstream trace_file(trace_file_name);
    const std::string trim_file_name = trace_file_name + ".trim.log";
