@@ -203,26 +203,26 @@ int main(int argc, char **argv)
    const CMD_Args cmd_args = parse_cmd_line(args);
 
    start_benchmark();
-   JsonConfigParser p(cmd_args.config_file);
-   p.read_config_file();
+   JsonConfigParser config(cmd_args.config_file);
+   config.read_config_file();
    try {
-      p.load_configurations();
+      config.load_configurations();
    }
    catch (...) {
       std::cerr << "Loading configuration failed";
       exit(2);
    }
-   p.update_relative_paths(cmd_args.log_file);
+   config.update_relative_paths(cmd_args.log_file);
    end_benchmark("Configuration loaded");
 
-   backup_if_not_exists(cmd_args.log_file, p.get_backup_file());
+   backup_if_not_exists(cmd_args.log_file, config.get_backup_file());
 
    start_benchmark();
    Translator tr;
-   tr.translate_file(cmd_args.log_file, p.get_translation_file(), p);
+   tr.translate_file(cmd_args.log_file, config.get_translation_file(), config);
    end_benchmark("Translation file generated");
 
-   for (auto const &command : p.get_execute_commands()) {
+   for (auto const &command : config.get_execute_commands()) {
       std::cout << "Executing...\n";
       start_benchmark();
       const char *command_str = command.c_str();
