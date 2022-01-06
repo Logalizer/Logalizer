@@ -218,8 +218,8 @@ int main(int argc, char **argv)
    backup_if_not_exists(cmd_args.log_file, config.get_backup_file());
 
    start_benchmark();
-   Translator tr;
-   tr.translate_file(cmd_args.log_file, config.get_translation_file(), config);
+   Translator tr(config);
+   tr.translate_file(cmd_args.log_file);
    end_benchmark("Translation file generated");
 
    for (auto const &command : config.get_execute_commands()) {

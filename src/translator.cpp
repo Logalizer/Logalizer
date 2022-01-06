@@ -119,28 +119,29 @@ std::string Translator::fill_values(std::vector<std::string> const &values, std:
    return filled_line;
 }
 
-[[nodiscard]] bool Translator::is_blacklisted(std::string const &line, std::vector<std::string> const &blacklists)
+[[nodiscard]] bool Translator::is_blacklisted(std::string const &line)
 {
+   std::vector<std::string> const &blacklists = config_.get_blacklists();
    return std::any_of(cbegin(blacklists), cend(blacklists),
                       [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
 }
 
-auto Translator::match(std::string const &line, std::vector<translation> const &translations,
-                       std::vector<std::string> const &blacklists)
+auto Translator::match(std::string const &line)
 {
-   auto found = std::find_if(cbegin(translations), cend(translations), [&line](auto const &tr) { return tr.in(line); });
-   if (found != cend(translations)) {
-      if (!is_blacklisted(line, blacklists)) {
+   const std::vector<translation> &trcfg = config_.get_translations();
+   auto found = std::find_if(cbegin(trcfg), cend(trcfg), [&line](auto const &tr) { return tr.in(line); });
+   if (found != cend(trcfg)) {
+      if (!is_blacklisted(line)) {
          return found;
       }
    }
-
    return found;
 }
 
-[[nodiscard]] bool Translator::is_deleted(std::string const &line, std::vector<std::string> const &delete_lines,
-                                          std::vector<std::regex> const &delete_lines_regex) noexcept
+[[nodiscard]] bool Translator::is_deleted(std::string const &line) noexcept
 {
+   std::vector<std::string> const &delete_lines = config_.get_delete_lines();
+   std::vector<std::regex> const &delete_lines_regex = config_.get_delete_lines_regex();
    bool deleted = std::any_of(cbegin(delete_lines), cend(delete_lines),
                               [&line](auto const &dl) { return line.find(dl) != std::string::npos; });
 
@@ -152,14 +153,14 @@ auto Translator::match(std::string const &line, std::vector<translation> const &
    return deleted;
 }
 
-void Translator::replace(std::string *line, std::vector<replacement> const &replacements)
+void Translator::replace_words(std::string *line)
 {
+   std::vector<replacement> const &replacements = config_.get_replace_words();
    std::for_each(cbegin(replacements), cend(replacements),
                  [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
-void Translator::add_translation(std::vector<std::string> &translations, std::string &&translation,
-                                 const Logalizer::Config::translation trans_cfg,
+void Translator::add_translation(std::string &&translation, const Logalizer::Config::translation trans_cfg,
                                  std::unordered_map<size_t, size_t> &trans_count)
 {
    const bool repeat_allowed = trans_cfg.repeat;
@@ -193,8 +194,7 @@ void Translator::add_translation(std::vector<std::string> &translations, std::st
    }
 }
 
-void Translator::update_count(std::vector<std::string> &translations,
-                              std::unordered_map<size_t, size_t> const &trans_count)
+void Translator::update_count(std::unordered_map<size_t, size_t> const &trans_count)
 {
    for (auto const &[index, count] : trans_count) {
       std::cout << index << ": " << count << "\n";
@@ -202,48 +202,65 @@ void Translator::update_count(std::vector<std::string> &translations,
    }
 }
 
-void Translator::translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
-                                ConfigParser const &config)
+void Translator::add_pre_text()
 {
-   std::ifstream trace_file(trace_file_name);
-   const std::string trim_file_name = trace_file_name + ".trim.log";
-   std::ofstream trimmed_file(trim_file_name);
-   std::vector<std::string> translations;
-   std::unordered_map<size_t, size_t> trans_count;
-
-   const auto pre_text = config.get_wrap_text_pre();
+   const auto &pre_text = config_.get_wrap_text_pre();
    std::copy(pre_text.cbegin(), pre_text.cend(), std::back_inserter(translations));
+}
 
-   for (std::string line; getline(trace_file, line);) {
-      if (is_deleted(line, config.get_delete_lines(), config.get_delete_lines_regex())) {
-         continue;
-      }
-
-      replace(&line, config.get_replace_words());
-      trimmed_file << line << '\n';
-
-      const auto translation_cfg = match(line, config.get_translations(), config.get_blacklists());
-      if (translation_cfg != cend(config.get_translations())) {
-         std::vector<std::string> values = fetch_values(line, translation_cfg->variables);
-         std::string translation = fill_values(values, translation_cfg->print);
-         add_translation(translations, std::move(translation), (*translation_cfg), trans_count);
-      }
-   }
-   update_count(translations, trans_count);
-   const auto post_text = config.get_wrap_text_post();
+void Translator::add_post_text()
+{
+   const auto &post_text = config_.get_wrap_text_post();
    std::copy(post_text.cbegin(), post_text.cend(), std::back_inserter(translations));
+}
 
-   Utils::mkdir(Utils::dir_file(translation_file_name).first);
-
-   std::ofstream translation_file(translation_file_name);
-   if (config.get_auto_new_line()) {
+void Translator::write_translation_file()
+{
+   std::string const &tr_file_name = config_.get_translation_file();
+   Utils::mkdir(Utils::dir_file(tr_file_name).first);
+   std::ofstream translation_file(tr_file_name);
+   if (config_.get_auto_new_line()) {
       std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file, "\n"));
    }
    else {
       std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file));
    }
    translation_file.close();
+}
 
+void Translator::write_to_file(std::string const &line, std::ofstream &trimmed_file)
+{
+   trimmed_file << line << '\n';
+}
+
+void Translator::translate(std::string const &line)
+{
+   std::unordered_map<size_t, size_t> trans_count;
+   const auto &trcfg = match(line);
+   if (trcfg != cend(config_.get_translations())) {
+      std::vector<std::string> values = fetch_values(line, trcfg->variables);
+      std::string translation = fill_values(values, trcfg->print);
+      add_translation(std::move(translation), (*trcfg), trans_count);
+   }
+   update_count(trans_count);
+}
+
+void Translator::translate_file(std::string const &trace_file_name)
+{
+   std::ifstream trace_file(trace_file_name);
+   const std::string trim_file_name = trace_file_name + ".trim.log";
+   std::ofstream trimmed_file(trim_file_name);
+   add_pre_text();
+   for (std::string line; getline(trace_file, line);) {
+      if (is_deleted(line)) continue;
+
+      replace_words(&line);
+      write_to_file(line, trimmed_file);
+      translate(line);
+   }
+   add_post_text();
+   write_translation_file();
+   translations.clear();
    trimmed_file.close();
    trace_file.close();
    remove(trace_file_name.c_str());
