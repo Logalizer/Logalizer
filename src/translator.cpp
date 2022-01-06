@@ -152,9 +152,9 @@ auto Translator::match(std::string const &line, std::vector<translation> const &
    return deleted;
 }
 
-void Translator::replace(std::string *line, std::vector<replacement> const &replacemnets)
+void Translator::replace(std::string *line, std::vector<replacement> const &replacements)
 {
-   std::for_each(cbegin(replacemnets), cend(replacemnets),
+   std::for_each(cbegin(replacements), cend(replacements),
                  [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 

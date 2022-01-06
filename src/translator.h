@@ -5,6 +5,10 @@
 #include "config_types.h"
 #include "configparser.h"
 
+namespace unit_test {
+class TranslatorTester;
+}
+
 class Translator {
    std::string fetch_values_regex(std::string const &line, std::vector<Logalizer::Config::variable> const &variables);
    std::string fetch_values_braced(std::string const &line, std::vector<Logalizer::Config::variable> const &variables);
@@ -19,7 +23,7 @@ class Translator {
               std::vector<std::string> const &blacklists);
    [[nodiscard]] bool is_deleted(std::string const &line, std::vector<std::string> const &delete_lines,
                                  std::vector<std::regex> const &delete_lines_regex) noexcept;
-   void replace(std::string *line, std::vector<Logalizer::Config::replacement> const &replacemnets);
+   void replace(std::string *line, std::vector<Logalizer::Config::replacement> const &replacements);
    void add_translation(std::vector<std::string> &translations, std::string &&translation,
                         const Logalizer::Config::translation trans_cfg,
                         std::unordered_map<size_t, size_t> &trans_count);
@@ -28,4 +32,5 @@ class Translator {
   public:
    void translate_file(std::string const &trace_file_name, std::string const &translation_file_name,
                        Logalizer::Config::ConfigParser const &config);
+   friend class ::unit_test::TranslatorTester;
 };
