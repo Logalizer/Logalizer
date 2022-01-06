@@ -119,5 +119,65 @@ class ConfigParser {
    {
       return auto_new_line_;
    }
+
+   void set_translations(std::vector<translation> translations)
+   {
+      translations_ = std::move(translations);
+   }
+
+   void set_disabled_categories(std::vector<std::string> disabled_categories)
+   {
+      disabled_categories_ = std::move(disabled_categories);
+   }
+
+   void set_wrap_text_pre(std::vector<std::string> wrap_text_pre)
+   {
+      wrap_text_pre_ = std::move(wrap_text_pre);
+   }
+
+   void set_wrap_text_post(std::vector<std::string> wrap_text_post)
+   {
+      wrap_text_post_ = std::move(wrap_text_post);
+   }
+
+   void set_delete_lines_regex(std::vector<std::regex> delete_lines_regex)
+   {
+      delete_lines_regex_ = std::move(delete_lines_regex);
+   }
+
+   void set_delete_lines(std::vector<std::string> delete_lines)
+   {
+      delete_lines_ = std::move(delete_lines);
+   }
+
+   void set_replace_words(std::vector<replacement> replace_words)
+   {
+      replace_words_ = std::move(replace_words);
+   }
+
+   void set_blacklists(std::vector<std::string> blacklists)
+   {
+      blacklists_ = std::move(blacklists);
+   }
+
+   void set_execute_commands(std::vector<std::string> execute_commands)
+   {
+      execute_commands_ = std::move(execute_commands);
+   }
+
+   void set_translation_file(std::string translation_file)
+   {
+      translation_file_ = std::move(translation_file);
+   }
+
+   void set_backup_file(std::string backup_file)
+   {
+      backup_file_ = std::move(backup_file);
+   }
+
+   void set_auto_new_line_(bool auto_new_line)
+   {
+      auto_new_line_ = auto_new_line;
+   }
 };
 }  // namespace Logalizer::Config
