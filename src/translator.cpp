@@ -74,7 +74,7 @@ std::string Translator::capture_values(variable const &var, std::string const &c
    return capture;
 }
 
-std::vector<std::string> Translator::fetch_values(std::string const &line, std::vector<variable> const &variables)
+std::vector<std::string> Translator::variable_values(std::string const &line, std::vector<variable> const &variables)
 {
    std::vector<std::string> value;
    if (variables.size() == 0) return {};
@@ -103,7 +103,7 @@ std::string Translator::fill_values_formatted(std::vector<std::string> const &va
    return filled_line;
 }
 
-std::string Translator::fill_values(std::vector<std::string> const &values, std::string const &line_to_fill)
+std::string Translator::update_variables(std::vector<std::string> const &values, std::string const &line_to_fill)
 {
    std::string filled_line;
    const bool formatted_print = (line_to_fill.find("${1}") != std::string::npos);
@@ -126,7 +126,7 @@ std::string Translator::fill_values(std::vector<std::string> const &values, std:
                       [&line](auto const &bl) { return line.find(bl) != std::string::npos; });
 }
 
-auto Translator::match(std::string const &line)
+auto Translator::get_matching_translator(std::string const &line)
 {
    const std::vector<translation> &trcfg = config_.get_translations();
    auto found = std::find_if(cbegin(trcfg), cend(trcfg), [&line](auto const &tr) { return tr.in(line); });
@@ -165,23 +165,36 @@ void Translator::add_translation(std::string &&translation, const Logalizer::Con
 {
    const bool repeat_allowed = trans_cfg.repeat;
    bool add_translation = true;
-   if (trans_cfg.count == count_type::scoped) {
-      if (translations.empty()) {
-         trans_count[0]++;
+   switch (trans_cfg.count) {
+      case count_type::scoped: {
+         if (translations.empty()) {
+            trans_count[0]++;
+         }
+         if (translation != translations.back()) {
+            trans_count[translations.size()]++;
+         }
+         else {
+            add_translation = false;
+            trans_count[translations.size() - 1]++;
+         }
+
+         break;
       }
-      if (translation != translations.back()) {
-         trans_count[translations.size()]++;
+      case count_type::global: {
+         auto first = std::find(cbegin(translations), cend(translations), translation);
+         if (first != end(translations)) {
+            trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
+            add_translation = false;
+         }
+
+         break;
       }
-      else {
-         add_translation = false;
-         trans_count[translations.size() - 1]++;
+      case count_type::none: {
+         break;
       }
-   }
-   else if (trans_cfg.count == count_type::global) {
-      auto first = std::find(cbegin(translations), cend(translations), translation);
-      if (first != end(translations)) {
-         trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
-         add_translation = false;
+
+      default: {
+         break;
       }
    }
    if ((add_translation && repeat_allowed) ||
@@ -236,10 +249,9 @@ void Translator::write_to_file(std::string const &line, std::ofstream &trimmed_f
 void Translator::translate(std::string const &line)
 {
    std::unordered_map<size_t, size_t> trans_count;
-   const auto &trcfg = match(line);
+   const auto &trcfg = get_matching_translator(line);
    if (trcfg != cend(config_.get_translations())) {
-      std::vector<std::string> values = fetch_values(line, trcfg->variables);
-      std::string translation = fill_values(values, trcfg->print);
+      std::string translation = update_variables(variable_values(line, trcfg->variables), trcfg->print);
       add_translation(std::move(translation), (*trcfg), trans_count);
    }
    update_count(trans_count);

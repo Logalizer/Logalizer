@@ -13,13 +13,13 @@ class Translator {
    std::string fetch_values_regex(std::string const &line, std::vector<Logalizer::Config::variable> const &variables);
    std::string fetch_values_braced(std::string const &line, std::vector<Logalizer::Config::variable> const &variables);
    std::string capture_values(Logalizer::Config::variable const &var, std::string const &content);
-   std::vector<std::string> fetch_values(std::string const &line,
-                                         std::vector<Logalizer::Config::variable> const &variables);
+   std::vector<std::string> variable_values(std::string const &line,
+                                            std::vector<Logalizer::Config::variable> const &variables);
    std::string pack_parameters(std::vector<std::string> const &v);
    std::string fill_values_formatted(std::vector<std::string> const &values, std::string const &line_to_fill);
-   std::string fill_values(std::vector<std::string> const &values, std::string const &line_to_fill);
+   std::string update_variables(std::vector<std::string> const &values, std::string const &line_to_fill);
    [[nodiscard]] bool is_blacklisted(std::string const &line);
-   auto match(std::string const &line);
+   auto get_matching_translator(std::string const &line);
    [[nodiscard]] bool is_deleted(std::string const &line) noexcept;
    void replace_words(std::string *line);
    void add_translation(std::string &&translation, const Logalizer::Config::translation trans_cfg,
