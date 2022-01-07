@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "config_types.h"
 #include "configparser.h"
 
 namespace Logalizer::Config {
@@ -66,6 +67,7 @@ std::vector<translation> load_translations(json const &config, std::string const
 
       translation tr;
       tr.category = category;
+
       try {
          tr.patterns = load_array(jtranslation, TAG_PATTERNS);
       }
@@ -77,22 +79,33 @@ std::vector<translation> load_translations(json const &config, std::string const
          std::cerr << "[warn]: patterns empty\n";
          continue;
       }
+
       tr.print = get_value_or(jtranslation, TAG_PRINT, std::string{});
       if (tr.print.empty()) {
          std::cerr << "[warn]: print not defined or empty\n";
          continue;
       }
-      tr.repeat = get_value_or(jtranslation, TAG_REPEAT, true);
+
       tr.variables = get_variables(jtranslation);
-      std::string ct = get_value_or(jtranslation, TAG_COUNT, std::string{});
-      if (ct == TAG_COUNT_SCOPED) {
-         tr.count = count_type::scoped;
+
+      std::string dup = get_value_or(jtranslation, TAG_DUPLICATES, std::string{});
+      if (dup.empty()) {
+         tr.duplicates = duplicates_t::allowed;
       }
-      else if (ct == TAG_COUNT_GLOBAL) {
-         tr.count = count_type::global;
+      else if (dup == TAG_DUPLICATES_REMOVE_ALL) {
+         tr.duplicates = duplicates_t::remove_all;
+      }
+      else if (dup == TAG_DUPLICATES_REMOVE_CONTINUOUS) {
+         tr.duplicates = duplicates_t::remove_continuous;
+      }
+      else if (dup == TAG_DUPLICATES_COUNT_ALL) {
+         tr.duplicates = duplicates_t::count_all;
+      }
+      else if (dup == TAG_DUPLICATES_COUNT_CONTINUOUS) {
+         tr.duplicates = duplicates_t::count_continuous;
       }
       else {
-         tr.count = count_type::none;
+         tr.duplicates = duplicates_t::allowed;
       }
       translations.push_back(std::move(tr));
    }

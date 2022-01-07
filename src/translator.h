@@ -22,7 +22,7 @@ class Translator {
    auto get_matching_translator(std::string const &line);
    [[nodiscard]] bool is_deleted(std::string const &line) noexcept;
    void replace_words(std::string *line);
-   void add_translation(std::string &&translation, const Logalizer::Config::translation trans_cfg,
+   void add_translation(std::string &&translation, Logalizer::Config::duplicates_t duplicates,
                         std::unordered_map<size_t, size_t> &trans_count);
    void update_count(std::unordered_map<size_t, size_t> const &trans_count);
    void add_pre_text();

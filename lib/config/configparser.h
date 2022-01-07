@@ -20,10 +20,12 @@ constexpr char TAG_CATEGORY[] = "category";
 constexpr char TAG_PATTERNS[] = "patterns";
 constexpr char TAG_PRINT[] = "print";
 constexpr char TAG_VARIABLES[] = "variables";
-constexpr char TAG_REPEAT[] = "repeat";
-constexpr char TAG_COUNT[] = "count";
-constexpr char TAG_COUNT_GLOBAL[] = "global";
-constexpr char TAG_COUNT_SCOPED[] = "scoped";
+constexpr char TAG_DUPLICATES[] = "duplicates";
+constexpr char TAG_DUPLICATES_ALLOWED[] = "allowed";
+constexpr char TAG_DUPLICATES_REMOVE_ALL[] = "remove_all";
+constexpr char TAG_DUPLICATES_REMOVE_CONTINUOUS[] = "remove_continuous";
+constexpr char TAG_DUPLICATES_COUNT_ALL[] = "count_all";
+constexpr char TAG_DUPLICATES_COUNT_CONTINUOUS[] = "count_continuous";
 
 class ConfigParser {
   public:

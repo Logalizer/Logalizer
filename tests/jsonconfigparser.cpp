@@ -277,7 +277,7 @@ TEST_CASE("translations one translation available")
            "endswith": "v2endswith"
          }
        ],
-       "count": "global"
+       "duplicates": "allowed"
      }
     ]
   }
@@ -291,13 +291,12 @@ TEST_CASE("translations one translation available")
    CHECK(tr.category == "category_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
-   CHECK(tr.repeat == true);
    auto variables = tr.variables;
    CHECK(variables.at(0).startswith == "v1startswith");
    CHECK(variables.at(0).endswith == "v1endswith");
    CHECK(variables.at(1).startswith == "v2startswith");
    CHECK(variables.at(1).endswith == "v2endswith");
-   CHECK(tr.count == count_type::global);
+   CHECK(tr.duplicates == duplicates_t::allowed);
 }
 
 TEST_CASE("translations category not mandatory")
@@ -397,7 +396,7 @@ TEST_CASE("translations category disabled")
    CHECK(tr.category == "c2");
 }
 
-TEST_CASE("translations count types")
+TEST_CASE("translations duplicates types")
 {
    auto j = R"( {
     "translations": [
@@ -411,14 +410,35 @@ TEST_CASE("translations count types")
        "patterns": [
          "pattern1"
        ],
-       "count": "scoped",
+       "duplicates": "remove_all",
        "print": "print this message"
      },
      {
        "patterns": [
          "pattern1"
        ],
-       "count": "global",
+       "duplicates": "remove_continuous",
+       "print": "print this message"
+     },
+     {
+       "patterns": [
+         "pattern1"
+       ],
+       "duplicates": "count_all",
+       "print": "print this message"
+     },
+     {
+       "patterns": [
+         "pattern1"
+       ],
+       "duplicates": "count_continuous",
+       "print": "print this message"
+     },
+     {
+       "patterns": [
+         "pattern1"
+       ],
+       "duplicates": "allowed",
        "print": "print this message"
      }
     ]
@@ -428,47 +448,13 @@ TEST_CASE("translations count types")
    JsonConfigParser parser(j);
    parser.load_translations();
    const auto& trs = parser.get_translations();
-   CHECK(trs.size() == 3);
-   CHECK(trs.at(0).count == count_type::none);
-   CHECK(trs.at(1).count == count_type::scoped);
-   CHECK(trs.at(2).count == count_type::global);
-}
-
-TEST_CASE("translations repeat")
-{
-   auto j = R"( {
-    "translations": [
-     {
-       "patterns": [
-         "pattern1"
-       ],
-       "print": "print this message"
-     },
-     {
-       "patterns": [
-         "pattern1"
-       ],
-       "repeat": false,
-       "print": "print this message"
-     },
-     {
-       "patterns": [
-         "pattern1"
-       ],
-       "repeat": true,
-       "print": "print this message"
-     }
-    ]
-  }
-  )"_json;
-
-   JsonConfigParser parser(j);
-   parser.load_translations();
-   const auto& trs = parser.get_translations();
-   CHECK(trs.size() == 3);
-   CHECK(trs.at(0).repeat == true);
-   CHECK(trs.at(1).repeat == false);
-   CHECK(trs.at(2).repeat == true);
+   CHECK(trs.size() == 6);
+   CHECK(trs.at(0).duplicates == duplicates_t::allowed);
+   CHECK(trs.at(1).duplicates == duplicates_t::remove_all);
+   CHECK(trs.at(2).duplicates == duplicates_t::remove_continuous);
+   CHECK(trs.at(3).duplicates == duplicates_t::count_all);
+   CHECK(trs.at(4).duplicates == duplicates_t::count_continuous);
+   CHECK(trs.at(5).duplicates == duplicates_t::allowed);
 }
 
 TEST_CASE("read full configuration")
@@ -492,7 +478,7 @@ TEST_CASE("read full configuration")
            "endswith": "v2endswith"
          }
        ],
-       "count": "global"
+       "duplicates": "remove_all"
      }
     ],
     "wrap_text_pre": [
@@ -544,13 +530,12 @@ TEST_CASE("read full configuration")
    CHECK(tr.category == "category_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
-   CHECK(tr.repeat == true);
    auto variables = tr.variables;
    CHECK(variables.at(0).startswith == "v1startswith");
    CHECK(variables.at(0).endswith == "v1endswith");
    CHECK(variables.at(1).startswith == "v2startswith");
    CHECK(variables.at(1).endswith == "v2endswith");
-   CHECK(tr.count == count_type::global);
+   CHECK(tr.duplicates == duplicates_t::remove_all);
 }
 
 TEST_CASE("read minimal mandatory configuration")
@@ -574,7 +559,7 @@ TEST_CASE("read minimal mandatory configuration")
            "endswith": "v2endswith"
          }
        ],
-       "count": "global"
+       "duplicates": "remove_all"
      }
     ],
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
@@ -600,13 +585,12 @@ TEST_CASE("read minimal mandatory configuration")
    CHECK(tr.category == "category_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
-   CHECK(tr.repeat == true);
    auto variables = tr.variables;
    CHECK(variables.at(0).startswith == "v1startswith");
    CHECK(variables.at(0).endswith == "v1endswith");
    CHECK(variables.at(1).startswith == "v2startswith");
    CHECK(variables.at(1).endswith == "v2endswith");
-   CHECK(tr.count == count_type::global);
+   CHECK(tr.duplicates == duplicates_t::remove_all);
 }
 
 TEST_CASE("translations unavailable")

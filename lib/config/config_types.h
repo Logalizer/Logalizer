@@ -18,11 +18,7 @@ struct variable {
    std::string endswith;
 };
 
-enum class count_type {
-   none,
-   scoped,
-   global
-};
+enum class duplicates_t { allowed, remove_all, remove_continuous, count_all, count_continuous };
 
 /**
  *  This hold the data populated in "translations" in the config file.
@@ -34,8 +30,7 @@ struct translation {
    std::vector<std::string> patterns;
    std::string print;
    std::vector<variable> variables;
-   bool repeat = true;
-   count_type count = count_type::none;
+   duplicates_t duplicates = duplicates_t::allowed;
 
    [[nodiscard]] bool in(std::string const &line) const
    {

@@ -3,7 +3,7 @@
 
 Helper to Visualize logs
 
-## What you get
+## What you can do
 
 + Visualize logs
 + Understand logs better
@@ -67,7 +67,7 @@ Example:
     + [patterns](#patterns)
     + [print](#print)
     + [variables](#variables)
-    + [count](#count)
+    + [duplicates](#duplicates)
   + [disable_category](#disable_category)
   + [blacklist](#blacklist)
   + [auto_new_line](#auto_new_line)
@@ -81,17 +81,18 @@ Example:
   + [replace_words](#replace_words)
 + [External Tools Configuration (Optional)](#External-Tools-Configuration)
   + [execute](#execute)
++ [Special Variables for Path](#Special-Variables-for-Path).
 
 
 ### Translation Configuration
 
 #### `translations` 
 
-This is the brain of the configuration. This is used to generate the translation file. This is an array of translation elements. 
+This is the brain of the configuration. This is used to generate the translation file. This is an array of translation elements. This is a mandatory configuration without which nothing can be translated.
 
 This is an example of a couple of translation configurations.
 
-Configurations for the lines "The temperature is 38 degrees" and "The pressure is 69 pa"
+Configurations for the lines "The temperature is 38 degrees" and "The pressure is 69 pa".
 
 ```json
   "translations": [
@@ -122,7 +123,7 @@ Configurations for the lines "The temperature is 38 degrees" and "The pressure i
 
 ##### `category` 
 
-This gives a name to a translation that can later be disabled by `disable_category`.
+This gives a name to a translation that can later be disabled by `disable_category`. This is optional.
 
 ```json
 "category": "Temperature_Sensing"
@@ -130,7 +131,7 @@ This gives a name to a translation that can later be disabled by `disable_catego
 
 ##### `patterns` 
 
-This a list of tokens used to match a line for translation.
+This a list of tokens used to match a line for translation. This is mandatory.
 
 ```json
 "patterns": ["temperature", "degree"]
@@ -139,8 +140,11 @@ Here the words temperature and degree should be present in this line for it to b
 
 ##### `print` 
 
-This is a string that gets written to the translation file if a match is found. This can have special tokens like `{$1}`, `{$2}`, `{$3}`, ... and `{$count}`. 
+This is a string that gets written to the translation file if a match is found. This can have special placeholders like `{$1}`, `{$2}`, `{$3}`, ... and `{$count}`. 
+
 These tokens that gets replaced by configuring `variables` and `count`.
+
+This is mandatory.
 
 ```json
 "print": "TemperatureSensor has reported a change",
@@ -149,18 +153,21 @@ If a match is found, the text "TemperatureSensor has reported a change", is writ
 
 ##### `variables` 
 
-This configuration is used to capture a variying value from the matched line. The captured value will replace the special tokens, `{$1}`, `{$2}`, `{$3}`,... To capture a variable we have to configure `starts_with` & `ends_with`. 
+You can configure variables if you want to capture dynamically changing value from the matched line. The captured value will replace the special placeholders, `{$1}`, `{$2}`, `{$3}` and so on that are used in `print`
+
+To capture a variable we have to configure `starts_with` & `ends_with`. 
 - `starts_with`: surrounding string with which the variable starts
 - `ends_with`: surrounding string with which the variable ends
 
-Let us try to capture the temperature in line "The temperature is `38` degrees"
+Let us try to capture the temperature in line "The temperature is `38` degrees".
 We try to use the text around 38, as `startswith` and `endswith`.  "The temperature `is `38` degrees`"
 
 ```json
+"print": "The temperature is {$1} degrees",
 "variables": [
   {
-    "endswith": " degrees",
     "startswith": "is "
+    "endswith": " degrees",
   }
 ]
 ```
@@ -168,11 +175,29 @@ For line "The temperature is 38 degrees" with the above config, `38` is captured
 
  - Automatic variable capture
 
+ ```log
+ First Name: James; Last Name: Bond;
+ ```
+
 ```json
-"print": "Temperature" 
+"print": "setName" 
+"variables": [
+  {
+    "startswith": "First Name: "
+    "endswith": ";",
+  },
+  {
+    "startswith": "Last Name: "
+    "endswith": ";",
+  }
+]
 ```
 
-The above config prints "Temperature(32)", variables are caputred in order and placed between parentheses
+The above config prints "setName(James, Bond)". 
+
+Variables are captured in order and placed between parentheses separated by comma. 
+
+If you capture multiple variables, make sure to configure the variable capture from left to right. In the above example, configuration for "Last Name" cannot be done before "First Name". The search for variables happens from left to right.
 
  - Manual variable capture 
 
@@ -183,21 +208,30 @@ The above config prints "Temperature(32)", variables are caputred in order and p
 The above config prints "The temperature is 32 degrees"
 
 
-##### `count` 
+##### `duplicates` 
 
-This is used to count the number of matching lines. This count will later be replaced in `print` with token `{$count}`. A count can be either `global` or `scoped`. 
+This is used to manage duplicate entries.
 
-- `global` counts all the matches in a file
+
+- `allowed` allows duplicates in the translation file. This is the default behaviour if not specified.
 
 ```json
-"count": "global"
+"duplicates": "allowed"
 ```
 
-- `scoped` counts all the continuous matches. The count is reset once a new match other than this translation is found. 
+- `remove_all` removes any duplicates in the translation and keeps only the first entry. 
 
 ```json
-"count": "scoped"
-  ```
+"duplicates": "remove_all"
+```
+
+- `remove_continuous` removes duplicates entries that occurs continuously in the translation. Only continuous entries are removed.
+
+```json
+"duplicates": "remove_continuous"
+```
+
+- `count_all` is same as `remove_all`. It also counts the duplicates and updates `{$count}` in the first entry.
 
 This is used to count the number of errors by searching lines with [FATAL] & [ERROR] tokens
 ```json
@@ -205,8 +239,23 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
     {
       "category": "Error_Count",
       "patterns": ["[FATAL]", "[ERROR]"],
-      "count": "global",
+      "duplicates": "count_all"
       "print": "note left: {$count} errors found !!!",
+      "variables": []
+    }
+  ]
+```
+
+- `count_continuous` is same as `remove_continuous`. It also counts continuously occurring duplicates and updates `{$count}` in the corresponding entry. 
+
+This is used to count the number of errors by searching lines with [FATAL] & [ERROR] tokens
+```json
+  "translations": [
+    {
+      "category": "Error_Count",
+      "patterns": ["Retrying..."],
+      "duplicates": "count_continuous"
+      "print": "note left: Retried {$count} times !!!",
       "variables": []
     }
   ]
@@ -235,13 +284,14 @@ This is used to blacklist the lines from matching. If a line is blacklisted, the
 
 #### `auto_new_line` 
 
-If set to `true`, each print is written in a new line. If set to `false` you have to write '\n' when needed in your `print`s.
+By default it is set to `true`. If set to `true`, each print is written in a new line. 
+
 
 ```json
 "auto_new_line": true
 ```
 
-If you set this to `false`, use \n manually in print.
+If set to `false` a new line is not inserted automatically. You can add '\n' if you want in your `print`s.
 
 ```json
 "print": "Temperature: {$1}\n"
@@ -249,7 +299,7 @@ If you set this to `false`, use \n manually in print.
 
 #### `wrap_text_pre` 
 
-This is a list of lines to place before the translation.
+This defines a list of lines that will be added to the top of the translation file.
 
 ```json
 "wrap_text_pre": [
@@ -260,7 +310,7 @@ This is a list of lines to place before the translation.
 
 #### `wrap_text_post` 
 
-This is a list of lines to place after the translation.
+This defines a list of lines that will be added at the end of the translation file.
 
 ```json
 "wrap_text_pre": [
@@ -273,23 +323,27 @@ This is a list of lines to place after the translation.
 
 #### `translation_file`
 
-This is the path to create the generated translation file
+This defines the path where the translation file should be created. You can use [Special Variables for Path](#Special-Variables-for-Path).
 
 ```json
-"translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_sequence.txt"
+"translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasenameNoExtension}_sequence.txt"
 ```
 
-This creates a sub directory in the name of the input file and places the translation file in it
+This example configuration creates a sub directory in the name of the input file and places the translation file in it.
+
+If the input file is "/tmp/test.log", the translation file will be placed at "/tmp/test/test_sequence.txt"
 
 #### `backup_file` 
 
-This is the path to create a backup of the input file
+You can use this if you want to take a backup of the original file. This is an optional configuration. You can use [Special Variables for Path](#Special-Variables-for-Path).
 
 ```json
 "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}.original"
 ```
 
-This creates a sub directory in the name of the input file and places the backup file in it
+This example configuration creates a sub directory in the name of the input file and places the backup file in it.
+
+If the input file is "/tmp/test.log", the backup file will be placed at "/tmp/test/test.log.original"
 
 ### Stripping Configuration
 
@@ -297,7 +351,7 @@ This creates a sub directory in the name of the input file and places the backup
 
 You can also use tools like sed to remove certain lines, instead of using this configuration. 
 
-This helps to delete a line in the input file. This is a list of tokens. All the lines with matching tokens are deleted.
+This modifies the input file. This is used to delete lines in the input file. This is a list of tokens. All the lines that matches the tokens are deleted.
 
 ```json
 "delete_lines": [
@@ -312,12 +366,12 @@ This configuration supports regex. Remember that regex matching is slower.
 
 You can also use tools like sed to replace certain text, instead of using this configuration. 
 
-This helps to replace a token in each line to a new token. This is a list of key value pairs. The key is replaced by the value in each line of the input file. 
+This modifies the input file. This is like find and replace. This is a list of key value pairs. The key is replaced by the value in each line of the input file. 
 
 ```json
 "replace_words": {
   "find this string": "replace with this string",
-  "find more string": "replace more string"
+  "find another string": "replace another string"
 }
 ```
 
@@ -329,10 +383,7 @@ You can also execute commands in a script, instead of using this configuration.
 
 This is a list of commands that gets executed after the translation file is written.
 
-- Special variables
--- `${fileDirname}` - The directory in which the input file is present
--- `${fileBasenameNoExtension}` - The input file name without extension
--- `${fileBasename}` - The input file name
+You can use [Special Variables for Path](#Special-Variables-for-Path).
 
 ```json
 "execute": [
@@ -340,7 +391,21 @@ This is a list of commands that gets executed after the translation file is writ
   "rm \"${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_sequence.txt\""
 ]
 ```
+
 This example configuration runs 
 
 1. plantuml to generate a sequence diagram out of the translation file
 2. remove the translation file
+
+
+### Special Variables for Path
+
+- `${fileDirname}` - The path to the directory in which the input file is present
+- `${fileBasename}` - The name of the input file
+- `${fileBasenameNoExtension}` - The name of the input file without extension
+
+If the input file is "/tmp/logs/test.log",
+
+- `${fileDirname}` - "/tmp/logs"
+- `${fileBasename}` - "test.log"
+- `${fileBasenameNoExtension}` - "test" 

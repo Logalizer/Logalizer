@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include "config_types.h"
 #include "path_variable_utils.h"
 
 using namespace Logalizer::Config;
@@ -160,50 +161,43 @@ void Translator::replace_words(std::string *line)
                  [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
 }
 
-void Translator::add_translation(std::string &&translation, const Logalizer::Config::translation trans_cfg,
+void Translator::add_translation(std::string &&translation, duplicates_t duplicates,
                                  std::unordered_map<size_t, size_t> &trans_count)
 {
-   const bool repeat_allowed = trans_cfg.repeat;
-   bool add_translation = true;
-   switch (trans_cfg.count) {
-      case count_type::scoped: {
-         if (translations.empty()) {
-            trans_count[0]++;
-         }
-         if (translation != translations.back()) {
-            trans_count[translations.size()]++;
+   auto contains = [this](const auto &str) { return std::find(cbegin(translations), cend(translations), str); };
+
+   switch (duplicates) {
+      case duplicates_t::allowed: {
+         translations.emplace_back(std::move(translation));
+         break;
+      }
+      case duplicates_t::remove_all: {
+         if (contains(translation) != translations.cend()) translations.emplace_back(std::move(translation));
+         break;
+      }
+      case duplicates_t::remove_continuous: {
+         if (translation != translations.back()) translations.emplace_back(std::move(translation));
+         break;
+      }
+      case duplicates_t::count_all: {
+         auto first = contains(translation);
+         if (translations.empty() || first != translations.cend()) {
+            translations.emplace_back(std::move(translation));
          }
          else {
-            add_translation = false;
+            trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
+         }
+         break;
+      }
+      case duplicates_t::count_continuous: {
+         if (translations.empty() || translation != translations.back()) {
+            translations.emplace_back(std::move(translation));
+         }
+         else {
             trans_count[translations.size() - 1]++;
          }
-
          break;
       }
-      case count_type::global: {
-         auto first = std::find(cbegin(translations), cend(translations), translation);
-         if (first != end(translations)) {
-            trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
-            add_translation = false;
-         }
-
-         break;
-      }
-      case count_type::none: {
-         break;
-      }
-
-      default: {
-         break;
-      }
-   }
-   if ((add_translation && repeat_allowed) ||
-       std::none_of(cbegin(translations), cend(translations),
-                    [&translation](auto const &entry) { return entry == translation; })) {
-      add_translation = true;
-   }
-   if (add_translation) {
-      translations.emplace_back(std::move(translation));
    }
 }
 
@@ -252,7 +246,7 @@ void Translator::translate(std::string const &line)
    const auto &trcfg = get_matching_translator(line);
    if (trcfg != cend(config_.get_translations())) {
       std::string translation = update_variables(variable_values(line, trcfg->variables), trcfg->print);
-      add_translation(std::move(translation), (*trcfg), trans_count);
+      add_translation(std::move(translation), trcfg->duplicates, trans_count);
    }
    update_count(trans_count);
 }
