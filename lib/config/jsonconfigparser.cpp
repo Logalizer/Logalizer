@@ -36,17 +36,6 @@ std::vector<variable> get_variables(json const &config)
    return variables;
 }
 
-std::vector<std::string> load_array(json const &config, std::string const &name)
-{
-   std::vector<std::string> array;
-   json jarray = config.at(name);
-
-   for (const auto &item : jarray.items()) {
-      array.push_back(item.value());
-   }
-   return array;
-}
-
 std::vector<translation> load_translations(json const &config, std::string const &name,
                                            std::vector<std::string> const &disabled_categories)
 {
@@ -69,7 +58,7 @@ std::vector<translation> load_translations(json const &config, std::string const
       tr.category = category;
 
       try {
-         tr.patterns = load_array(jtranslation, TAG_PATTERNS);
+         tr.patterns = jtranslation.at(TAG_PATTERNS).get<std::vector<std::string>>();
       }
       catch (...) {
          std::cerr << "[warn]: patterns not defined\n";
@@ -132,7 +121,7 @@ void JsonConfigParser::read_config_file()
 
 void JsonConfigParser::load_disabled_categories()
 {
-   disabled_categories_ = details::load_array(config_, TAG_DISABLE_CATEGORY);
+   disabled_categories_ = config_.at(TAG_DISABLE_CATEGORY).get<std::vector<std::string>>();
 }
 
 void JsonConfigParser::load_translations()
@@ -143,12 +132,13 @@ void JsonConfigParser::load_translations()
 void JsonConfigParser::load_wrap_text()
 {
    try {
-      wrap_text_pre_ = std::vector<std::string>(config_.at(TAG_WRAPTEXT_PRE));
+      wrap_text_pre_ = config_.at(TAG_WRAPTEXT_PRE).get<std::vector<std::string>>();
    }
    catch (...) {
    }
    try {
-      wrap_text_post_ = std::vector<std::string>(config_.at(TAG_WRAPTEXT_POST));
+      // wrap_text_post_ = std::vector<std::string>(config_.at(TAG_WRAPTEXT_POST));
+      wrap_text_post_ = config_.at(TAG_WRAPTEXT_POST).get<std::vector<std::string>>();
    }
    catch (...) {
    }
@@ -157,7 +147,8 @@ void JsonConfigParser::load_wrap_text()
 void JsonConfigParser::load_blacklists()
 {
    try {
-      blacklists_ = std::vector<std::string>(config_.at(TAG_BLACKLIST));
+      // blacklists_ = std::vector<std::string>(config_.at(TAG_BLACKLIST));
+      blacklists_ = config_.at(TAG_BLACKLIST).get<std::vector<std::string>>();
    }
    catch (...) {
    }
@@ -165,7 +156,7 @@ void JsonConfigParser::load_blacklists()
 
 void JsonConfigParser::load_delete_lines()
 {
-   const std::vector<std::string> deletors = details::load_array(config_, TAG_DELETE_LINES);
+   const std::vector<std::string> deletors = config_.at(TAG_DELETE_LINES).get<std::vector<std::string>>();
 
    for (auto const &entry : deletors) {
       if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
@@ -197,7 +188,7 @@ void JsonConfigParser::load_replace_words()
 
 void JsonConfigParser::load_execute()
 {
-   execute_commands_ = details::load_array(config_, TAG_EXECUTE);
+   execute_commands_ = config_.at(TAG_EXECUTE).get<std::vector<std::string>>();
 }
 
 void JsonConfigParser::load_translation_file()
