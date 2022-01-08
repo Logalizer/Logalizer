@@ -3,8 +3,7 @@ project(Logalizer_test VERSION 1.0 LANGUAGES CXX)
 add_executable(${PROJECT_NAME}
     main.cpp
     jsonconfigparser.cpp
-    translator.cpp ../src/translator.cpp
-    path_variable_utils.cpp)
+    translator.cpp ../src/translator.cpp)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 

@@ -27,6 +27,10 @@ constexpr char TAG_DUPLICATES_REMOVE_CONTINUOUS[] = "remove_continuous";
 constexpr char TAG_DUPLICATES_COUNT_ALL[] = "count_all";
 constexpr char TAG_DUPLICATES_COUNT_CONTINUOUS[] = "count_continuous";
 
+static const std::string VAR_FILE_DIR_NAME = "\\${fileDirname}";
+static const std::string VAR_FILE_BASE_NO_EXTENSION = "\\${fileBasenameNoExtension}";
+static const std::string VAR_FILE_BASE_WITH_EXTENSION = "\\${fileBasename}";
+
 class ConfigParser {
   public:
    ConfigParser(std::string config_file);
@@ -48,7 +52,7 @@ class ConfigParser {
    virtual void load_backup_file() = 0;
    virtual void load_auto_new_line() = 0;
    virtual void load_configurations() final;
-   void update_relative_paths(std::string const& log_file);
+   virtual void update_path_variables() final;
 
   protected:
    std::vector<translation> translations_;
@@ -63,6 +67,7 @@ class ConfigParser {
    std::string translation_file_;
    std::string backup_file_;
    bool auto_new_line_ = true;
+   path_vars input_file_details_;
 
    std::string config_file_;
 
@@ -180,6 +185,11 @@ class ConfigParser {
    void set_auto_new_line_(bool auto_new_line)
    {
       auto_new_line_ = auto_new_line;
+   }
+
+   void set_path_variables(path_vars input_file_details)
+   {
+      input_file_details_ = input_file_details;
    }
 };
 }  // namespace Logalizer::Config

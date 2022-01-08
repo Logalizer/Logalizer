@@ -1,7 +1,7 @@
 #include "configparser.h"
 #include <iostream>
+#include <regex>
 #include <string>
-#include "path_variable_utils.h"
 
 namespace Logalizer::Config {
 
@@ -9,15 +9,17 @@ ConfigParser::ConfigParser(std::string config_file) : config_file_{std::move(con
 {
 }
 
-void ConfigParser::update_relative_paths(std::string const &log_file)
+void ConfigParser::update_path_variables()
 {
-   using namespace Utils;
-   const auto [dir, file] = dir_file(log_file);
-   std::for_each(begin(execute_commands_), end(execute_commands_),
-                 [dir = dir, file = file](auto &command) { replace_paths(&command, dir, file); });
+   auto update_path_vars = [&, this](std::string *input) {
+      *input = std::regex_replace(*input, std::regex(VAR_FILE_DIR_NAME), input_file_details_.dir);
+      *input = std::regex_replace(*input, std::regex(VAR_FILE_BASE_WITH_EXTENSION), input_file_details_.file);
+      *input = std::regex_replace(*input, std::regex(VAR_FILE_BASE_NO_EXTENSION), input_file_details_.file_no_ext);
+   };
+   std::for_each(begin(execute_commands_), end(execute_commands_), [&](auto &command) { update_path_vars(&command); });
 
-   replace_paths(&backup_file_, dir, file);
-   replace_paths(&translation_file_, dir, file);
+   update_path_vars(&backup_file_);
+   update_path_vars(&translation_file_);
 }
 
 void ConfigParser::load_configurations()

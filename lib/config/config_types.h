@@ -58,4 +58,10 @@ struct output_files {
    std::string translation;
 };
 
+struct path_vars {
+   std::string dir;
+   std::string file;
+   std::string file_no_ext;
+};
+
 }  // namespace Logalizer::Config

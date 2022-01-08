@@ -1,11 +1,13 @@
 #include "translator.h"
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <regex>
 #include "config_types.h"
-#include "path_variable_utils.h"
 
+namespace fs = std::filesystem;
 using namespace Logalizer::Config;
 
 std::string Translator::fetch_values_regex(std::string const &line, std::vector<variable> const &variables)
@@ -99,7 +101,7 @@ std::string Translator::fill_values_formatted(std::vector<std::string> const &va
    std::string filled_line = line_to_fill;
    for (size_t i = 1, len = values.size(); i <= len; ++i) {
       const std::string token = "${" + std::to_string(i) + "}";
-      Utils::replace_all(&filled_line, token, values[i - 1]);
+      filled_line = std::regex_replace(filled_line, std::regex(token), values[i - 1]);
    }
    return filled_line;
 }
@@ -157,8 +159,9 @@ auto Translator::get_matching_translator(std::string const &line)
 void Translator::replace_words(std::string *line)
 {
    std::vector<replacement> const &replacements = config_.get_replace_words();
-   std::for_each(cbegin(replacements), cend(replacements),
-                 [&](auto const &entry) { Utils::replace_all(line, entry.search, entry.replace); });
+   std::for_each(cbegin(replacements), cend(replacements), [&](auto const &entry) {
+      *line = std::regex_replace(*line, std::regex(entry.search), entry.replace);
+   });
 }
 
 void Translator::add_translation(std::string &&translation, duplicates_t duplicates,
@@ -205,7 +208,7 @@ void Translator::update_count(std::unordered_map<size_t, size_t> const &trans_co
 {
    for (auto const &[index, count] : trans_count) {
       std::cout << index << ": " << count << "\n";
-      Utils::replace_all(&translations[index], "${count}", std::to_string(count));
+      translations[index] = std::regex_replace(translations[index], std::regex("\\${count}"), std::to_string(count));
    }
 }
 
@@ -224,7 +227,7 @@ void Translator::add_post_text()
 void Translator::write_translation_file()
 {
    std::string const &tr_file_name = config_.get_translation_file();
-   Utils::mkdir(Utils::dir_file(tr_file_name).first);
+   fs::create_directories(fs::path(tr_file_name).remove_filename());
    std::ofstream translation_file(tr_file_name);
    if (config_.get_auto_new_line()) {
       std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file, "\n"));
@@ -271,4 +274,17 @@ void Translator::translate_file(std::string const &trace_file_name)
    trace_file.close();
    remove(trace_file_name.c_str());
    rename(trim_file_name.c_str(), trace_file_name.c_str());
+}
+
+void Translator::execute_commands()
+{
+   for (auto const &command : config_.get_execute_commands()) {
+      std::cout << "Executing...\n";
+      const char *command_str = command.c_str();
+      std::cout << command_str << std::endl;
+      if (const int returnval = system(command_str)) {
+         std::cerr << TAG_EXECUTE << " : " << command << " execution failed with code " << returnval << "\n";
+         break;
+      }
+   }
 }

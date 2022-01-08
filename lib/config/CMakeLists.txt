@@ -15,9 +15,7 @@ add_library(${PROJECT_NAME} STATIC
             "configparser.h"
             "config_types.h"
             "jsonconfigparser.cpp"
-            "jsonconfigparser.h"
-            "path_variable_utils.h"
-            "path_variable_utils.cpp")
+            "jsonconfigparser.h")
 
 add_library(Logalizer::config ALIAS ${PROJECT_NAME})
 

@@ -39,5 +39,6 @@ class Translator {
    {
    }
    void translate_file(std::string const &trace_file_name);
+   void execute_commands();
    friend class ::unit_test::TranslatorTesterProxy;
 };

@@ -1,13 +1,15 @@
 #include <sys/stat.h>
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string_view>
 #include "LogalizerConfig.h"
 #include "jsonconfigparser.h"
-#include "path_variable_utils.h"
 #include "translator.h"
+
+namespace fs = std::filesystem;
 
 void printHelp()
 {
@@ -154,15 +156,19 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
       printHelp();
       exit(0);
    }
-   const auto [dir, dummy] = Utils::dir_file(args.at(0).data());
-   if (config_file.empty()) config_file = dir + "/config.json";
-   if (struct stat my_stat; stat(config_file.c_str(), &my_stat) != 0) {
-      std::cerr << config_file << " config file not available\n\n";
+
+   if (config_file.empty()) {
+      fs::path exe_path = fs::path(args.at(0)).remove_filename();
+      config_file = (exe_path / "config.json").string();
+   }
+
+   if (!fs::exists(config_file)) {
+      std::cerr << config_file << " : config file not available\n\n";
       printHelp();
       exit(1);
    }
-   if (struct stat my_stat; stat(log_file.c_str(), &my_stat) != 0) {
-      std::cerr << log_file << " log file not available\n";
+   if (!fs::exists(log_file)) {
+      std::cerr << log_file << " : not available\n";
       exit(1);
    }
 
@@ -173,11 +179,14 @@ void backup_if_not_exists(const std::string &original, const std::string &backup
 {
    if (original.empty() || backup.empty()) return;
 
-   Utils::mkdir(Utils::dir_file(backup).first);
-   if (struct stat my_stat; stat(backup.c_str(), &my_stat) != 0) {
-      std::ifstream src(original, std::ios::binary);
-      std::ofstream dst(backup, std::ios::binary);
-      dst << src.rdbuf();
+   try {
+      fs::create_directories(fs::path(backup).remove_filename());
+      if (!fs::exists(backup)) {
+         fs::copy_file(original, backup);
+      }
+   }
+   catch (std::exception &e) {
+      std::cerr << "Backup failed : " << e.what();
    }
 }
 
@@ -203,35 +212,31 @@ int main(int argc, char **argv)
 
    start_benchmark();
    JsonConfigParser config(cmd_args.config_file);
-   config.read_config_file();
    try {
+      config.read_config_file();
       config.load_configurations();
    }
    catch (...) {
-      std::cerr << "Loading configuration failed";
+      std::cerr << "Loading configuration failed\n";
       exit(2);
    }
-   config.update_relative_paths(cmd_args.log_file);
+   fs::path log_file_path = cmd_args.log_file;
+   path_vars path_details;
+   path_details.dir = log_file_path.parent_path().string();
+   path_details.file = log_file_path.filename().string();
+   path_details.file_no_ext = fs::path(path_details.file).replace_extension("").string();
+   config.set_path_variables(path_details);
    end_benchmark("Configuration loaded");
 
    backup_if_not_exists(cmd_args.log_file, config.get_backup_file());
 
-   start_benchmark();
    Translator tr(config);
+   start_benchmark();
    tr.translate_file(cmd_args.log_file);
    end_benchmark("Translation file generated");
 
-   for (auto const &command : config.get_execute_commands()) {
-      std::cout << "Executing...\n";
-      start_benchmark();
-      const char *command_str = command.c_str();
-      std::cout << command_str << std::endl;
-      if (const int returnval = system(command_str)) {
-         std::cerr << TAG_EXECUTE << " : " << command << " execution failed\n";
-         return returnval;
-      }
-      end_benchmark("Executed");
-   }
-
+   start_benchmark();
+   tr.execute_commands();
+   end_benchmark("Executed");
    return 0;
 }
