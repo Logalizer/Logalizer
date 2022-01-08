@@ -1,9 +1,9 @@
 #include <sys/stat.h>
-#include <unistd.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string_view>
 #include "LogalizerConfig.h"
 #include "jsonconfigparser.h"
 #include "path_variable_utils.h"
@@ -155,8 +155,7 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
       exit(0);
    }
    const auto [dir, dummy] = Utils::dir_file(args.at(0).data());
-   if (chdir(dir.c_str())) std::cerr << "Could not change directory to " << dir;
-   if (config_file.empty()) config_file = "config.json";
+   if (config_file.empty()) config_file = dir + "/config.json";
    if (struct stat my_stat; stat(config_file.c_str(), &my_stat) != 0) {
       std::cerr << config_file << " config file not available\n\n";
       printHelp();

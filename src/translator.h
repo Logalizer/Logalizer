@@ -1,6 +1,7 @@
 #pragma once
 #include <regex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "config_types.h"
 #include "configparser.h"
