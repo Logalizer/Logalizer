@@ -22,7 +22,8 @@ add_library(${PROJECT_NAME} STATIC
 add_library(Logalizer::config ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
-target_compile_options(config PRIVATE -std=c++17 -O3)
+# target_compile_options(config PRIVATE -std=c++17 -O3)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # -std=c++17 is used as cxx_std_17 is not working with mingw
 # target_compile_features( config PRIVATE cxx_std_17)
