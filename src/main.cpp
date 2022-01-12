@@ -14,8 +14,9 @@ namespace fs = std::filesystem;
 void printHelp()
 {
    std::cout << "\n"
-                "Logalizer\n"
-                "  Filter and translate a trace log to a meaningful format.\n"
+                "Logalizer v"
+             << LOGALIZER_VERSION_MAJOR << "." << LOGALIZER_VERSION_MINOR << "\n"
+             << "  Helper to visualize and understand logs.\n"
                 "  Logesh Gopalakrishnan\n\n"
                 "Usage:\n"
                 "  logalizer -c <config> -f <log>\n"
@@ -28,7 +29,7 @@ void printHelp()
                 "  -h --help        Show this screen\n"
                 "  --config-help    Show sample configuration\n"
                 "  --version        Show version\n"
-                "  -c <config>      Translation configuration file. Default is ./config.json\n"
+                "  -c <config>      Translation configuration file. Defaults to config.json\n"
                 "  -f <log>         Log file to be interpreted\n"
                 "\n"
                 "Example:\n"
