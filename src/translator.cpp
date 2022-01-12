@@ -142,7 +142,7 @@ auto Translator::get_matching_translator(std::string const &line)
          return found;
       }
    }
-   return found;
+   return cend(trcfg);
 }
 
 [[nodiscard]] bool Translator::is_deleted(std::string const &line) noexcept
