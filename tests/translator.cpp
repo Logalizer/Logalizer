@@ -378,4 +378,179 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       CHECK(lines.at(0) == "TemperatureChanged to 45 1 times");
       CHECK(lines.at(1) == "TemperatureChanged to 49 2 times");
    }
+
+   SECTION("blacklist")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
+      file << "[INFO]: PressureSensor: pressure = 14psi\n";
+      file.close();
+      translation tr;
+      config.set_blacklists({"Temperature"});
+      tr.patterns = {"Sensor"};
+      tr.print = "Sensor values changed";
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 1);
+      CHECK(lines.at(0) == "Sensor values changed");
+   }
+
+   SECTION("Multiple translations")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
+      file << "[INFO]: PressureSensor: pressure = 14psi\n";
+      file.close();
+      translation tr;
+      tr.patterns = {"TemperatureSensor"};
+      tr.print = "TemperatureChanged";
+      translations.push_back(tr);
+      tr.patterns = {"PressureSensor"};
+      tr.print = "PressureChanged";
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 3);
+      CHECK(lines.at(0) == "TemperatureChanged");
+      CHECK(lines.at(1) == "TemperatureChanged");
+      CHECK(lines.at(2) == "PressureChanged");
+   }
+
+   SECTION("auto_new_line")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
+      file << "[INFO]: PressureSensor: pressure = 14psi\n";
+      file << "[INFO]: HumiditySensor: humidity = 20%\n";
+      file.close();
+      config.set_auto_new_line_(false);
+      translation tr;
+      tr.category = "TemperatureSensing";
+      tr.patterns = {"TemperatureSensor"};
+      tr.print = "TemperatureChanged";
+      translations.push_back(tr);
+      tr.category = "PressureSensing";
+      tr.patterns = {"PressureSensor"};
+      tr.print = "PressureChanged";
+      translations.push_back(tr);
+      tr.patterns = {"HumiditySensor"};
+      tr.print = "\nHumidityChanged";
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "TemperatureChangedPressureChanged");
+      CHECK(lines.at(1) == "HumidityChanged");
+   }
+
+   SECTION("wrap_text_pre")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
+      file.close();
+      config.set_wrap_text_pre({"pre1", "pre2"});
+      translation tr;
+      tr.category = "TemperatureSensing";
+      tr.patterns = {"TemperatureSensor"};
+      tr.print = "TemperatureChanged";
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 3);
+      CHECK(lines.at(0) == "pre1");
+      CHECK(lines.at(1) == "pre2");
+      CHECK(lines.at(2) == "TemperatureChanged");
+   }
+
+   SECTION("wrap_text_post")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
+      file.close();
+      config.set_wrap_text_post({"post1", "post2"});
+      translation tr;
+      tr.category = "TemperatureSensing";
+      tr.patterns = {"TemperatureSensor"};
+      tr.print = "TemperatureChanged";
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 3);
+      CHECK(lines.at(0) == "TemperatureChanged");
+      CHECK(lines.at(1) == "post1");
+      CHECK(lines.at(2) == "post2");
+   }
+
+   SECTION("delete_lines in input file")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
+      file << "[INFO]: PressureSensor: pressure = 14psi\n";
+      file << "[INFO]: HumiditySensor: humidity = 20%\n";
+      file.close();
+      translation tr;
+      tr.patterns = {"Sensor"};
+      tr.print = "Sensor values changed";
+      translations.push_back(tr);
+      config.set_delete_lines({"Temperature"});
+      config.set_delete_lines_regex({std::regex("Pres.*: ")});
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream in_file_read(in_file);
+      for (std::string read_line; getline(in_file_read, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 1);
+      CHECK(lines.at(0) == "[INFO]: HumiditySensor: humidity = 20%");
+      lines.clear();
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 1);
+      CHECK(lines.at(0) == "Sensor values changed");
+   }
+
+   SECTION("replace_words in input file")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C state = 3\n";
+      file << "[INFO]: TemperatureSensor: temperature = 59C state = 4\n";
+      file.close();
+      translation tr;
+      tr.patterns = {"Sensor"};
+      tr.print = "Temperature";
+      tr.variables = {{"state = ", ""}};
+      translations.push_back(tr);
+      config.set_replace_words({{"state = 3", "state = High_Temp"}, {"state = 4", "state = Very_High_Temp"}});
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream in_file_read(in_file);
+      for (std::string read_line; getline(in_file_read, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "[INFO]: TemperatureSensor: temperature = 45C state = High_Temp");
+      CHECK(lines.at(1) == "[INFO]: TemperatureSensor: temperature = 59C state = Very_High_Temp");
+      lines.clear();
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "Temperature(High_Temp)");
+      CHECK(lines.at(1) == "Temperature(Very_High_Temp)");
+   }
 }
