@@ -18,7 +18,7 @@ struct variable {
    std::string endswith;
 };
 
-enum class duplicates_t { allowed, remove_all, remove_continuous, count_all, count_continuous };
+enum class duplicates_t { allowed, remove, remove_continuous, count, count_continuous };
 
 /**
  *  This hold the data populated in "translations" in the config file.

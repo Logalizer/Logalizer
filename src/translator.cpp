@@ -69,7 +69,11 @@ std::string Translator::capture_values(variable const &var, std::string const &c
 
    start_point += var.startswith.size();
    const auto end_point = content.find(var.endswith, start_point);
-   if (end_point == std::string::npos) return " ";
+   if (end_point == std::string::npos || var.endswith.empty()) {
+      // if endswith is not matching or empty, capture till the end
+      std::string capture(content.cbegin() + static_cast<long>(start_point), content.cend());
+      return capture;
+   }
 
    std::string capture(content.cbegin() + static_cast<long>(start_point),
                        content.cbegin() + static_cast<long>(end_point));
@@ -100,7 +104,7 @@ std::string Translator::fill_values_formatted(std::vector<std::string> const &va
 {
    std::string filled_line = line_to_fill;
    for (size_t i = 1, len = values.size(); i <= len; ++i) {
-      const std::string token = "${" + std::to_string(i) + "}";
+      const std::string token = "\\$\\{" + std::to_string(i) + "\\}";
       filled_line = std::regex_replace(filled_line, std::regex(token), values[i - 1]);
    }
    return filled_line;
@@ -164,8 +168,7 @@ void Translator::replace_words(std::string *line)
    });
 }
 
-void Translator::add_translation(std::string &&translation, duplicates_t duplicates,
-                                 std::unordered_map<size_t, size_t> &trans_count)
+void Translator::add_translation(std::string &&translation, duplicates_t duplicates)
 {
    auto contains = [this](const auto &str) { return std::find(cbegin(translations), cend(translations), str); };
 
@@ -174,18 +177,20 @@ void Translator::add_translation(std::string &&translation, duplicates_t duplica
          translations.emplace_back(std::move(translation));
          break;
       }
-      case duplicates_t::remove_all: {
-         if (contains(translation) != translations.cend()) translations.emplace_back(std::move(translation));
+      case duplicates_t::remove: {
+         if (contains(translation) == translations.cend()) translations.emplace_back(std::move(translation));
          break;
       }
       case duplicates_t::remove_continuous: {
-         if (translation != translations.back()) translations.emplace_back(std::move(translation));
+         if (translations.empty() || translation != translations.back())
+            translations.emplace_back(std::move(translation));
          break;
       }
-      case duplicates_t::count_all: {
+      case duplicates_t::count: {
          auto first = contains(translation);
-         if (translations.empty() || first != translations.cend()) {
+         if (translations.empty() || first == translations.cend()) {
             translations.emplace_back(std::move(translation));
+            trans_count[translations.size() - 1]++;
          }
          else {
             trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
@@ -196,19 +201,17 @@ void Translator::add_translation(std::string &&translation, duplicates_t duplica
          if (translations.empty() || translation != translations.back()) {
             translations.emplace_back(std::move(translation));
          }
-         else {
-            trans_count[translations.size() - 1]++;
-         }
+         trans_count[translations.size() - 1]++;
          break;
       }
    }
 }
 
-void Translator::update_count(std::unordered_map<size_t, size_t> const &trans_count)
+void Translator::update_count()
 {
    for (auto const &[index, count] : trans_count) {
-      std::cout << index << ": " << count << "\n";
-      translations[index] = std::regex_replace(translations[index], std::regex("\\${count}"), std::to_string(count));
+      translations[index] =
+          std::regex_replace(translations[index], std::regex("\\$\\{count\\}"), std::to_string(count));
    }
 }
 
@@ -245,13 +248,11 @@ void Translator::write_to_file(std::string const &line, std::ofstream &trimmed_f
 
 void Translator::translate(std::string const &line)
 {
-   std::unordered_map<size_t, size_t> trans_count;
    const auto &trcfg = get_matching_translator(line);
    if (trcfg != cend(config_.get_translations())) {
       std::string translation = update_variables(variable_values(line, trcfg->variables), trcfg->print);
-      add_translation(std::move(translation), trcfg->duplicates, trans_count);
+      add_translation(std::move(translation), trcfg->duplicates);
    }
-   update_count(trans_count);
 }
 
 void Translator::translate_file(std::string const &trace_file_name)
@@ -267,6 +268,7 @@ void Translator::translate_file(std::string const &trace_file_name)
       write_to_file(line, trimmed_file);
       translate(line);
    }
+   update_count();
    add_post_text();
    write_translation_file();
    translations.clear();

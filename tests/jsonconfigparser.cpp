@@ -410,7 +410,7 @@ TEST_CASE("translations duplicates types")
        "patterns": [
          "pattern1"
        ],
-       "duplicates": "remove_all",
+       "duplicates": "remove",
        "print": "print this message"
      },
      {
@@ -424,7 +424,7 @@ TEST_CASE("translations duplicates types")
        "patterns": [
          "pattern1"
        ],
-       "duplicates": "count_all",
+       "duplicates": "count",
        "print": "print this message"
      },
      {
@@ -450,9 +450,9 @@ TEST_CASE("translations duplicates types")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 6);
    CHECK(trs.at(0).duplicates == duplicates_t::allowed);
-   CHECK(trs.at(1).duplicates == duplicates_t::remove_all);
+   CHECK(trs.at(1).duplicates == duplicates_t::remove);
    CHECK(trs.at(2).duplicates == duplicates_t::remove_continuous);
-   CHECK(trs.at(3).duplicates == duplicates_t::count_all);
+   CHECK(trs.at(3).duplicates == duplicates_t::count);
    CHECK(trs.at(4).duplicates == duplicates_t::count_continuous);
    CHECK(trs.at(5).duplicates == duplicates_t::allowed);
 }
@@ -478,7 +478,7 @@ TEST_CASE("read full configuration")
            "endswith": "v2endswith"
          }
        ],
-       "duplicates": "remove_all"
+       "duplicates": "remove"
      }
     ],
     "wrap_text_pre": [
@@ -535,7 +535,7 @@ TEST_CASE("read full configuration")
    CHECK(variables.at(0).endswith == "v1endswith");
    CHECK(variables.at(1).startswith == "v2startswith");
    CHECK(variables.at(1).endswith == "v2endswith");
-   CHECK(tr.duplicates == duplicates_t::remove_all);
+   CHECK(tr.duplicates == duplicates_t::remove);
 }
 
 TEST_CASE("read minimal mandatory configuration")
@@ -559,7 +559,7 @@ TEST_CASE("read minimal mandatory configuration")
            "endswith": "v2endswith"
          }
        ],
-       "duplicates": "remove_all"
+       "duplicates": "remove"
      }
     ],
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
@@ -590,7 +590,7 @@ TEST_CASE("read minimal mandatory configuration")
    CHECK(variables.at(0).endswith == "v1endswith");
    CHECK(variables.at(1).startswith == "v2startswith");
    CHECK(variables.at(1).endswith == "v2endswith");
-   CHECK(tr.duplicates == duplicates_t::remove_all);
+   CHECK(tr.duplicates == duplicates_t::remove);
 }
 
 TEST_CASE("translations unavailable")

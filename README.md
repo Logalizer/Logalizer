@@ -140,7 +140,7 @@ Here the words temperature and degree should be present in this line for it to b
 
 ##### `print` 
 
-This is a string that gets written to the translation file if a match is found. This can have special placeholders like `{$1}`, `{$2}`, `{$3}`, ... and `{$count}`. 
+This is a string that gets written to the translation file if a match is found. This can have special placeholders like `${1}`, `${2}`, `${3}`, ... and `${count}`. 
 
 These tokens that gets replaced by configuring `variables` and `count`.
 
@@ -153,7 +153,7 @@ If a match is found, the text "TemperatureSensor has reported a change", is writ
 
 ##### `variables` 
 
-You can configure variables if you want to capture dynamically changing value from the matched line. The captured value will replace the special placeholders, `{$1}`, `{$2}`, `{$3}` and so on that are used in `print`
+You can configure variables if you want to capture dynamically changing value from the matched line. The captured value will replace the special placeholders, `${1}`, `${2}`, `${3}` and so on that are used in `print`
 
 To capture a variable we have to configure `starts_with` & `ends_with`. 
 - `starts_with`: surrounding string with which the variable starts
@@ -163,7 +163,7 @@ Let us try to capture the temperature in line "The temperature is `38` degrees".
 We try to use the text around 38, as `startswith` and `endswith`.  "The temperature `is `38` degrees`"
 
 ```json
-"print": "The temperature is {$1} degrees",
+"print": "The temperature is ${1} degrees",
 "variables": [
   {
     "startswith": "is "
@@ -171,7 +171,7 @@ We try to use the text around 38, as `startswith` and `endswith`.  "The temperat
   }
 ]
 ```
-For line "The temperature is 38 degrees" with the above config, `38` is captured in `{$1}`
+For line "The temperature is 38 degrees" with the above config, `38` is captured in `${1}`
 
  - Automatic variable capture
 
@@ -231,7 +231,7 @@ This is used to manage duplicate entries.
 "duplicates": "remove_continuous"
 ```
 
-- `count_all` is same as `remove_all`. It also counts the duplicates and updates `{$count}` in the first entry.
+- `count_all` is same as `remove_all`. It also counts the duplicates and updates `${count}` in the first entry.
 
 This is used to count the number of errors by searching lines with [FATAL] & [ERROR] tokens
 ```json
@@ -240,13 +240,13 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
       "category": "Error_Count",
       "patterns": ["[FATAL]", "[ERROR]"],
       "duplicates": "count_all"
-      "print": "note left: {$count} errors found !!!",
+      "print": "note left: ${count} errors found !!!",
       "variables": []
     }
   ]
 ```
 
-- `count_continuous` is same as `remove_continuous`. It also counts continuously occurring duplicates and updates `{$count}` in the corresponding entry. 
+- `count_continuous` is same as `remove_continuous`. It also counts continuously occurring duplicates and updates `${count}` in the corresponding entry. 
 
 This is used to count the number of errors by searching lines with [FATAL] & [ERROR] tokens
 ```json
@@ -255,7 +255,7 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
       "category": "Error_Count",
       "patterns": ["Retrying..."],
       "duplicates": "count_continuous"
-      "print": "note left: Retried {$count} times !!!",
+      "print": "note left: Retried ${count} times !!!",
       "variables": []
     }
   ]
@@ -294,7 +294,7 @@ By default it is set to `true`. If set to `true`, each print is written in a new
 If set to `false` a new line is not inserted automatically. You can add '\n' if you want in your `print`s.
 
 ```json
-"print": "Temperature: {$1}\n"
+"print": "Temperature: ${1}\n"
 ```
 
 #### `wrap_text_pre` 

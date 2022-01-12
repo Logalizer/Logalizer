@@ -81,14 +81,14 @@ std::vector<translation> load_translations(json const &config, std::string const
       if (dup.empty()) {
          tr.duplicates = duplicates_t::allowed;
       }
-      else if (dup == TAG_DUPLICATES_REMOVE_ALL) {
-         tr.duplicates = duplicates_t::remove_all;
+      else if (dup == TAG_DUPLICATES_REMOVE) {
+         tr.duplicates = duplicates_t::remove;
       }
       else if (dup == TAG_DUPLICATES_REMOVE_CONTINUOUS) {
          tr.duplicates = duplicates_t::remove_continuous;
       }
-      else if (dup == TAG_DUPLICATES_COUNT_ALL) {
-         tr.duplicates = duplicates_t::count_all;
+      else if (dup == TAG_DUPLICATES_COUNT) {
+         tr.duplicates = duplicates_t::count;
       }
       else if (dup == TAG_DUPLICATES_COUNT_CONTINUOUS) {
          tr.duplicates = duplicates_t::count_continuous;

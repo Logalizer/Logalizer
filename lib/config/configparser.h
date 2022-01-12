@@ -22,9 +22,9 @@ constexpr char TAG_PRINT[] = "print";
 constexpr char TAG_VARIABLES[] = "variables";
 constexpr char TAG_DUPLICATES[] = "duplicates";
 constexpr char TAG_DUPLICATES_ALLOWED[] = "allowed";
-constexpr char TAG_DUPLICATES_REMOVE_ALL[] = "remove_all";
+constexpr char TAG_DUPLICATES_REMOVE[] = "remove";
 constexpr char TAG_DUPLICATES_REMOVE_CONTINUOUS[] = "remove_continuous";
-constexpr char TAG_DUPLICATES_COUNT_ALL[] = "count_all";
+constexpr char TAG_DUPLICATES_COUNT[] = "count";
 constexpr char TAG_DUPLICATES_COUNT_CONTINUOUS[] = "count_continuous";
 
 static const std::string VAR_FILE_DIR_NAME = "\\${fileDirname}";

@@ -23,9 +23,8 @@ class Translator {
    auto get_matching_translator(std::string const &line);
    [[nodiscard]] bool is_deleted(std::string const &line) noexcept;
    void replace_words(std::string *line);
-   void add_translation(std::string &&translation, Logalizer::Config::duplicates_t duplicates,
-                        std::unordered_map<size_t, size_t> &trans_count);
-   void update_count(std::unordered_map<size_t, size_t> const &trans_count);
+   void add_translation(std::string &&translation, Logalizer::Config::duplicates_t duplicates);
+   void update_count();
    void add_pre_text();
    void add_post_text();
    void write_translation_file();
@@ -33,6 +32,7 @@ class Translator {
    void translate(std::string const &line);
    const Logalizer::Config::ConfigParser &config_;
    std::vector<std::string> translations;
+   std::unordered_map<size_t, size_t> trans_count;
 
   public:
    Translator(const Logalizer::Config::ConfigParser &config) : config_(config)
