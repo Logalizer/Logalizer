@@ -70,8 +70,8 @@ TEST_CASE("replace")
 
 TEST_CASE("translate basic patterns and print with manual variable capture")
 {
-   std::string tr_file = fs::temp_directory_path() / "tr.txt";
-   std::string in_file = fs::temp_directory_path() / "input.log";
+   std::string tr_file = (fs::temp_directory_path() / "tr.txt").string();
+   std::string in_file = (fs::temp_directory_path() / "input.log").string();
    std::ofstream file(in_file);
    ConfigParserMock config;
    config.set_translation_file(tr_file);
