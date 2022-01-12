@@ -41,8 +41,7 @@ void ConfigParser::load_configurations()
       load_translation_file();
       load_translations();
    }
-   catch (std::exception &e) {
-      std::cout << e.what() << '\n';
+   catch (...) {
       throw;
    }
    try {

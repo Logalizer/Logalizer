@@ -228,8 +228,9 @@ int main(int argc, char **argv)
       config.read_config_file();
       config.load_configurations();
    }
-   catch (...) {
+   catch (std::exception &e) {
       std::cerr << "Loading configuration failed\n";
+      std::cerr << e.what();
       exit(2);
    }
    end_benchmark("Configuration loaded");
