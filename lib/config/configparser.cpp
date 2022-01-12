@@ -74,5 +74,11 @@ void ConfigParser::load_configurations()
    catch (...) {
       auto_new_line_ = true;
    }
+   try {
+      update_path_variables();
+   }
+   catch (std::exception &e) {
+      std::cerr << "[warn] Special variables for path not updated " << e.what() << "\n";
+   }
 }
 }  // namespace Logalizer::Config

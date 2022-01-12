@@ -27,9 +27,9 @@ constexpr char TAG_DUPLICATES_REMOVE_CONTINUOUS[] = "remove_continuous";
 constexpr char TAG_DUPLICATES_COUNT[] = "count";
 constexpr char TAG_DUPLICATES_COUNT_CONTINUOUS[] = "count_continuous";
 
-static const std::string VAR_FILE_DIR_NAME = "\\${fileDirname}";
-static const std::string VAR_FILE_BASE_NO_EXTENSION = "\\${fileBasenameNoExtension}";
-static const std::string VAR_FILE_BASE_WITH_EXTENSION = "\\${fileBasename}";
+static const std::string VAR_FILE_DIR_NAME = "\\$\\{fileDirname\\}";
+static const std::string VAR_FILE_BASE_NO_EXTENSION = "\\$\\{fileBasenameNoExtension\\}";
+static const std::string VAR_FILE_BASE_WITH_EXTENSION = "\\$\\{fileBasename\\}";
 
 class ConfigParser {
   public:

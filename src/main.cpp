@@ -191,6 +191,16 @@ void backup_if_not_exists(const std::string &original, const std::string &backup
    }
 }
 
+path_vars get_path_vars(std::string log_file)
+{
+   fs::path log_file_path = log_file;
+   path_vars path_details;
+   path_details.dir = log_file_path.parent_path().string();
+   path_details.file = log_file_path.filename().string();
+   path_details.file_no_ext = fs::path(path_details.file).replace_extension("").string();
+   return path_details;
+}
+
 static std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 static std::chrono::time_point<std::chrono::high_resolution_clock> end_time;
 
@@ -214,6 +224,7 @@ int main(int argc, char **argv)
    start_benchmark();
    JsonConfigParser config(cmd_args.config_file);
    try {
+      config.set_path_variables(get_path_vars(cmd_args.log_file));
       config.read_config_file();
       config.load_configurations();
    }
@@ -221,12 +232,6 @@ int main(int argc, char **argv)
       std::cerr << "Loading configuration failed\n";
       exit(2);
    }
-   fs::path log_file_path = cmd_args.log_file;
-   path_vars path_details;
-   path_details.dir = log_file_path.parent_path().string();
-   path_details.file = log_file_path.filename().string();
-   path_details.file_no_ext = fs::path(path_details.file).replace_extension("").string();
-   config.set_path_variables(path_details);
    end_benchmark("Configuration loaded");
 
    backup_if_not_exists(cmd_args.log_file, config.get_backup_file());
