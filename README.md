@@ -197,7 +197,6 @@ The above config prints "setName(James, Bond)".
 
 Variables are captured in order and placed between parentheses separated by comma. 
 
-If you capture multiple variables, make sure to configure the variable capture from left to right. In the above example, configuration for "Last Name" cannot be done before "First Name". The search for variables happens from left to right.
 
  - Manual variable capture 
 
