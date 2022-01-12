@@ -53,6 +53,7 @@ class ConfigParser {
    virtual void load_auto_new_line() = 0;
    virtual void load_configurations() final;
    virtual void update_path_variables() final;
+   virtual bool is_disabled(const std::string& category) final;
 
   protected:
    std::vector<translation> translations_;

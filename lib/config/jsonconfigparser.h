@@ -24,5 +24,10 @@ class JsonConfigParser final : public ConfigParser {
 
   private:
    nlohmann::json config_;
+   template <class T>
+   T get_value_or(nlohmann::json const &config, std::string const &name, T value);
+   std::vector<variable> get_variables(nlohmann::json const &config);
+   std::vector<translation> load_translations(nlohmann::json const &config, std::string const &name,
+                                              std::vector<std::string> const &disabled_categories);
 };
 }  // namespace Logalizer::Config

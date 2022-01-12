@@ -16,8 +16,10 @@ using json = nlohmann::json;
 
 namespace details {
 
+}  // namespace details
+
 template <class T>
-T get_value_or(json const &config, std::string const &name, T value)
+T Logalizer::Config::JsonConfigParser::get_value_or(json const &config, std::string const &name, T value)
 {
    const auto found = config.find(name);
    if (found != config.end()) {
@@ -26,7 +28,7 @@ T get_value_or(json const &config, std::string const &name, T value)
    return value;
 }
 
-std::vector<variable> get_variables(json const &config)
+std::vector<variable> JsonConfigParser::get_variables(json const &config)
 {
    std::vector<variable> variables;
    const auto &jvariables = get_value_or(config, "variables", json{});
@@ -36,8 +38,8 @@ std::vector<variable> get_variables(json const &config)
    return variables;
 }
 
-std::vector<translation> load_translations(json const &config, std::string const &name,
-                                           std::vector<std::string> const &disabled_categories)
+std::vector<translation> JsonConfigParser::load_translations(json const &config, std::string const &name,
+                                                             std::vector<std::string> const &disabled_categories)
 {
    std::vector<translation> translations;
 
@@ -47,12 +49,7 @@ std::vector<translation> load_translations(json const &config, std::string const
       const json &jtranslation = item.value();
       const std::string category = get_value_or(jtranslation, TAG_CATEGORY, std::string{});
 
-      const bool is_disabled =
-          std::any_of(cbegin(disabled_categories), cend(disabled_categories), [&category](auto const &dCategory) {
-             if (category == dCategory) return true;
-             return false;
-          });
-      if (is_disabled) continue;
+      if (is_disabled(category)) continue;
 
       translation tr;
       tr.category = category;
@@ -100,8 +97,6 @@ std::vector<translation> load_translations(json const &config, std::string const
    }
    return translations;
 }
-}  // namespace details
-
 JsonConfigParser::JsonConfigParser(std::string const &config_file) : ConfigParser(config_file)
 {
    if (config_file_.empty()) config_file_ = "config.json";
@@ -126,7 +121,7 @@ void JsonConfigParser::load_disabled_categories()
 
 void JsonConfigParser::load_translations()
 {
-   translations_ = details::load_translations(config_, TAG_TRANSLATIONS, disabled_categories_);
+   translations_ = load_translations(config_, TAG_TRANSLATIONS, disabled_categories_);
 }
 
 void JsonConfigParser::load_wrap_text()

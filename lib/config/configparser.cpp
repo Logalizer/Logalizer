@@ -22,6 +22,13 @@ void ConfigParser::update_path_variables()
    update_path_vars(&translation_file_);
 }
 
+bool ConfigParser::is_disabled(const std::string &category)
+{
+   return std::any_of(cbegin(disabled_categories_), cend(disabled_categories_), [&category](auto const &dCategory) {
+      if (category == dCategory) return true;
+      return false;
+   });
+}
 void ConfigParser::load_configurations()
 {
    try {
