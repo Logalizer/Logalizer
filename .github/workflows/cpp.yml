@@ -45,9 +45,9 @@ jobs:
             generators: "Ninja"
           }
         - {
-            name: "Ubuntu_GCC_9",
+            name: "Ubuntu_GCC_11",
             os: ubuntu-latest,
-            artifact: "ubuntu_gcc9.7z",
+            artifact: "ubuntu_gcc11.7z",
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
@@ -89,16 +89,16 @@ jobs:
           ninja --version
           cmake --version
           gcc --version
-      - name: Install dependencies on ubuntu9
-        if: startsWith(matrix.config.name, 'Ubuntu_GCC_9')
+      - name: Install dependencies on ubuntu11
+        if: startsWith(matrix.config.name, 'Ubuntu_GCC_11')
         run: |
-          echo Update gcc-9 =======================================================================
+          echo Update gcc-11 =======================================================================
           echo gcc version before
           gcc --version
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           sudo apt-get update
-          sudo apt-get install ninja-build cmake gcc-9 g++-9
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9 --slave /usr/bin/gcov gcov /usr/bin/gcov-9
+          sudo apt-get install ninja-build cmake gcc-11 g++-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 90 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
           echo gcc version after
           gcc --version
           echo Update ninja =======================================================================
