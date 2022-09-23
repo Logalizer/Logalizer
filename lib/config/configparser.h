@@ -6,6 +6,7 @@
 namespace Logalizer::Config {
 
 constexpr char TAG_TRANSLATIONS[] = "translations";
+constexpr char TAG_TRANSLATIONS_CSV[] = "translations_csv";
 constexpr char TAG_WRAPTEXT_PRE[] = "wrap_text_pre";
 constexpr char TAG_WRAPTEXT_POST[] = "wrap_text_post";
 constexpr char TAG_DISABLE_CATEGORY[] = "disable_category";
