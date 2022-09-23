@@ -33,14 +33,19 @@ static const std::string VAR_FILE_BASE_WITH_EXTENSION = "\\$\\{fileBasename\\}";
 
 class ConfigParser {
   public:
-   ConfigParser(std::string config_file);
+   ConfigParser() = default;
    virtual ~ConfigParser() = default;
    ConfigParser(ConfigParser&&) = default;
    ConfigParser(const ConfigParser&) = default;
    ConfigParser& operator=(const ConfigParser&) = default;
    ConfigParser& operator=(ConfigParser&&) = default;
 
+   virtual void load_configurations() final;
    virtual void read_config_file() = 0;
+   virtual bool is_disabled(const std::string& category) final;
+
+  private:
+   virtual void update_path_variables() final;
    virtual void load_disabled_categories() = 0;
    virtual void load_translations() = 0;
    virtual void load_wrap_text() = 0;
@@ -51,9 +56,6 @@ class ConfigParser {
    virtual void load_translation_file() = 0;
    virtual void load_backup_file() = 0;
    virtual void load_auto_new_line() = 0;
-   virtual void load_configurations() final;
-   virtual void update_path_variables() final;
-   virtual bool is_disabled(const std::string& category) final;
 
   protected:
    std::vector<translation> translations_;
@@ -69,8 +71,6 @@ class ConfigParser {
    std::string backup_file_;
    bool auto_new_line_ = true;
    path_vars input_file_details_;
-
-   std::string config_file_;
 
   public:
    [[nodiscard]] inline std::vector<translation> const& get_translations() const noexcept

@@ -38,7 +38,7 @@ class ConfigParserMock : public Logalizer::Config::ConfigParser {
    void load_auto_new_line()
    {
    }
-   ConfigParserMock() : ConfigParser("")
+   ConfigParserMock()
    {
    }
 };
