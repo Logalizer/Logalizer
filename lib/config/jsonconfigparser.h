@@ -24,6 +24,7 @@ class JsonConfigParser final : public ConfigParser {
 
   private:
    nlohmann::json config_;
+   std::string config_file_;
    template <class T>
    T get_value_or(nlohmann::json const &config, std::string const &name, T value);
    std::vector<variable> get_variables(nlohmann::json const &config);

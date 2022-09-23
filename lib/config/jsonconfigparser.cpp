@@ -97,12 +97,13 @@ std::vector<translation> JsonConfigParser::load_translations(json const &config,
    }
    return translations;
 }
-JsonConfigParser::JsonConfigParser(std::string const &config_file) : ConfigParser(config_file)
+
+JsonConfigParser::JsonConfigParser(std::string const &config_file) : config_file_(config_file)
 {
    if (config_file_.empty()) config_file_ = "config.json";
 }
 
-JsonConfigParser::JsonConfigParser(nlohmann::json config) : ConfigParser("")
+JsonConfigParser::JsonConfigParser(nlohmann::json config)
 {
    config_ = std::move(config);
 }

@@ -5,10 +5,6 @@
 
 namespace Logalizer::Config {
 
-ConfigParser::ConfigParser(std::string config_file) : config_file_{std::move(config_file)}
-{
-}
-
 void ConfigParser::update_path_variables()
 {
    auto update_path_vars = [&, this](std::string *input) {
