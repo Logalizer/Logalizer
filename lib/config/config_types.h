@@ -25,7 +25,6 @@ enum class duplicates_t { allowed, remove, remove_continuous, count, count_conti
  * This will hold the information to translate a particular line to a different one.
  */
 struct translation {
-  public:
    std::string category;
    std::vector<std::string> patterns;
    std::string print;
@@ -45,7 +44,6 @@ struct translation {
 };
 
 struct replacement {
-  public:
    std::string search;
    std::string replace;
    replacement(std::string s, std::string r) : search(std::move(s)), replace(std::move(r))
