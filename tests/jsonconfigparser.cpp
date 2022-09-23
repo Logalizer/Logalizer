@@ -1,4 +1,5 @@
 #include "jsonconfigparser.h"
+#include <fstream>
 #include "catch.hpp"
 #include "config_types.h"
 
@@ -254,6 +255,192 @@ TEST_CASE("auto_new_line unavailable")
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_auto_new_line());
    CHECK(parser.get_auto_new_line() == true);
+}
+
+TEST_CASE("translations_csv available")
+{
+   auto j = R"(
+  {
+    "translations_csv": "config_translations.csv"
+  }
+  )"_json;
+
+   std::ofstream csv("config_translations.csv");
+   csv << "Enabled,Group,print,duplicates,Pattern1,Pattern2,Pattern3,variable1_starts_with,variable1_ends_with,"
+          "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
+   csv << "Yes,category_name,print this "
+          "message,allowed,pattern1,pattern2,,v1startswith,v1endswith,v2startswith,v2endswith,,\n";
+   csv.close();
+
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.category == "category_name");
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   auto variables = tr.variables;
+   CHECK(variables.at(0).startswith == "v1startswith");
+   CHECK(variables.at(0).endswith == "v1endswith");
+   CHECK(variables.at(1).startswith == "v2startswith");
+   CHECK(variables.at(1).endswith == "v2endswith");
+   CHECK(tr.duplicates == duplicates_t::allowed);
+}
+
+TEST_CASE("translations_csv available with all fields")
+{
+   auto j = R"(
+  {
+    "translations_csv": "config_translations.csv"
+  }
+  )"_json;
+
+   std::ofstream csv("config_translations.csv");
+   csv << "Enabled,Group,print,duplicates,Pattern1,Pattern2,Pattern3,variable1_starts_with,variable1_ends_with,"
+          "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
+   csv << "Yes,category_name,print this "
+          "message,allowed,pattern1,pattern2,pattern3,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
+          "v3endswith\n";
+   csv.close();
+
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.category == "category_name");
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2", "pattern3"}));
+   CHECK(tr.print == "print this message");
+   auto variables = tr.variables;
+   CHECK(variables.at(0).startswith == "v1startswith");
+   CHECK(variables.at(0).endswith == "v1endswith");
+   CHECK(variables.at(1).startswith == "v2startswith");
+   CHECK(variables.at(1).endswith == "v2endswith");
+   CHECK(variables.at(2).startswith == "v3startswith");
+   CHECK(variables.at(2).endswith == "v3endswith");
+   CHECK(tr.duplicates == duplicates_t::allowed);
+}
+
+TEST_CASE("translations_csv without patterns")
+{
+   auto j = R"(
+  {
+    "translations_csv": "config_translations.csv"
+  }
+  )"_json;
+
+   std::ofstream csv("config_translations.csv");
+   csv << "Enabled,Group,print,duplicates,Pattern1,Pattern2,Pattern3,variable1_starts_with,variable1_ends_with,"
+          "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
+   csv << "Yes,category_name,print this "
+          "message,allowed,,,,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
+          "v3endswith\n";
+   csv.close();
+
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 0);
+}
+
+TEST_CASE("translations_csv without variables")
+{
+   auto j = R"(
+  {
+    "translations_csv": "config_translations.csv"
+  }
+  )"_json;
+
+   std::ofstream csv("config_translations.csv");
+   csv << "Enabled,Group,print,duplicates,Pattern1,Pattern2,Pattern3,variable1_starts_with,variable1_ends_with,"
+          "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
+   csv << "Yes,category_name,print this "
+          "message,allowed,pattern1,,,,,,,,\n";
+   csv.close();
+
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.category == "category_name");
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1"}));
+   CHECK(tr.print == "print this message");
+   auto variables = tr.variables;
+   CHECK(tr.variables.size() == 0);
+   CHECK(tr.duplicates == duplicates_t::allowed);
+}
+
+TEST_CASE("translations_csv disabled entry")
+{
+   auto j = R"(
+  {
+    "translations_csv": "config_translations.csv"
+  }
+  )"_json;
+
+   std::ofstream csv("config_translations.csv");
+   csv << "Enabled,Group,print,duplicates,Pattern1,Pattern2,Pattern3,variable1_starts_with,variable1_ends_with,"
+          "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
+   csv << "No,category_name,print this "
+          "message,allowed,pattern1,pattern2,pattern3,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
+          "v3endswith\n";
+   csv << "No,,\n";
+   csv << "no,,\n";
+   csv << "False,,\n";
+   csv << "false,,\n";
+   csv << "0,,\n";
+
+   csv.close();
+
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 0);
+}
+
+TEST_CASE("translations_csv both translations and translations_csv")
+{
+   auto j = R"(
+  {
+    "translations_csv": "config_translations.csv",
+    "translations": [
+     {
+       "category": "category_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+       "duplicates": "allowed"
+     }
+    ]
+  }
+  )"_json;
+
+   std::ofstream csv("config_translations.csv");
+   csv << "Enabled,Group,print,duplicates,Pattern1,Pattern2,Pattern3,variable1_starts_with,variable1_ends_with,"
+          "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
+   csv << "Yes,category_name,print this "
+          "message,allowed,pattern1,pattern2,pattern3,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
+          "v3endswith\n";
+   csv.close();
+
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
 }
 
 TEST_CASE("translations one translation available")
