@@ -161,11 +161,11 @@ TEST_CASE("execute unavailable")
    CHECK(parser.get_execute_commands() == std::vector<std::string>({}));
 }
 
-TEST_CASE("disable_category available")
+TEST_CASE("disable_group available")
 {
    auto j = R"(
   {
-    "disable_category": [
+    "disable_group": [
       "d1",
       "d2"
     ]
@@ -177,7 +177,7 @@ TEST_CASE("disable_category available")
    CHECK(parser.get_disabled_categories() == std::vector<std::string>({"d1", "d2"}));
 }
 
-TEST_CASE("disable_category unavailable")
+TEST_CASE("disable_group unavailable")
 {
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
@@ -266,9 +266,9 @@ TEST_CASE("translations_csv available")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,pattern1,pattern2,,v1startswith,v1endswith,v2startswith,v2endswith,,\n";
    csv.close();
 
@@ -277,7 +277,7 @@ TEST_CASE("translations_csv available")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -297,9 +297,9 @@ TEST_CASE("translations_csv available with double quote within double quote")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,\"\"\"pattern1\"\"\",pattern2,,v1startswith,v1endswith,v2startswith,v2endswith,,\n";
    csv.close();
 
@@ -308,7 +308,7 @@ TEST_CASE("translations_csv available with double quote within double quote")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"\"pattern1\"", "pattern2"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -328,9 +328,9 @@ TEST_CASE("translations_csv available with comma within double quote")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,\"pattern1, pattern1.1\",pattern2,,v1startswith,v1endswith,v2startswith,v2endswith,,\n";
    csv.close();
 
@@ -339,7 +339,7 @@ TEST_CASE("translations_csv available with comma within double quote")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1, pattern1.1", "pattern2"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -359,9 +359,9 @@ TEST_CASE("translations_csv available with all fields")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,pattern1,pattern2,pattern3,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
           "v3endswith\n";
    csv.close();
@@ -371,7 +371,7 @@ TEST_CASE("translations_csv available with all fields")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2", "pattern3"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -393,9 +393,9 @@ TEST_CASE("translations_csv without patterns")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,,,,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
           "v3endswith\n";
    csv.close();
@@ -415,9 +415,9 @@ TEST_CASE("translations_csv without variables")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,pattern1,,,,,,,,\n";
    csv.close();
 
@@ -426,7 +426,7 @@ TEST_CASE("translations_csv without variables")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -443,9 +443,9 @@ TEST_CASE("translations_csv disabled entry")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "No,category_name,print this "
+   csv << "No,group_name,print this "
           "message,allowed,pattern1,pattern2,pattern3,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
           "v3endswith\n";
    csv << "No,,,,,,,,,,,,\n";
@@ -469,7 +469,7 @@ TEST_CASE("translations_csv both translations and translations_csv")
     "translations_csv": "config_translations.csv",
     "translations": [
      {
-       "category": "category_name",
+       "group": "group_name",
        "patterns": [
          "pattern1",
          "pattern2"
@@ -492,9 +492,9 @@ TEST_CASE("translations_csv both translations and translations_csv")
   )"_json;
 
    std::ofstream csv("config_translations.csv");
-   csv << "enabled,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
+   csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
           "variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with\n";
-   csv << "Yes,category_name,print this "
+   csv << "Yes,group_name,print this "
           "message,allowed,pattern1,pattern2,pattern3,v1startswith,v1endswith,v2startswith,v2endswith,v3startswith,"
           "v3endswith\n";
    csv.close();
@@ -510,7 +510,7 @@ TEST_CASE("translations one translation available")
    auto j = R"( {
     "translations": [
      {
-       "category": "category_name",
+       "group": "group_name",
        "patterns": [
          "pattern1",
          "pattern2"
@@ -537,7 +537,7 @@ TEST_CASE("translations one translation available")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -548,7 +548,7 @@ TEST_CASE("translations one translation available")
    CHECK(tr.duplicates == duplicates_t::allowed);
 }
 
-TEST_CASE("translations category not mandatory")
+TEST_CASE("translations group not mandatory")
 {
    auto j = R"( {
     "translations": [
@@ -606,27 +606,68 @@ TEST_CASE("translations print is mandatory")
    CHECK(trs.size() == 0);
 }
 
-TEST_CASE("translations category disabled")
+TEST_CASE("translations indivudually disabled")
 {
    auto j = R"( {
-   "disable_category" : ["c1"],
+   "disable_group" : [],
     "translations": [
      {
-       "category": "c1",
+       "group": "c1",
+       "enable": false,
        "patterns": [
          "pattern1"
        ],
        "print": "print this message"
      },
      {
-       "category": "c1",
+       "group": "c1",
+       "enable": true,
        "patterns": [
          "pattern1"
        ],
        "print": "print this message"
      },
      {
-       "category": "c2",
+       "group": "c2",
+       "patterns": [
+         "pattern1"
+       ],
+       "print": "print this message"
+     }
+    ]
+  }
+  )"_json;
+
+   JsonConfigParser parser(j);
+   parser.load_disabled_categories();
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 2);
+   CHECK(trs[0].category == "c1");
+   CHECK(trs[1].category == "c2");
+}
+
+TEST_CASE("translations group disabled")
+{
+   auto j = R"( {
+   "disable_group" : ["c1"],
+    "translations": [
+     {
+       "group": "c1",
+       "patterns": [
+         "pattern1"
+       ],
+       "print": "print this message"
+     },
+     {
+       "group": "c1",
+       "patterns": [
+         "pattern1"
+       ],
+       "print": "print this message"
+     },
+     {
+       "group": "c2",
        "patterns": [
          "pattern1"
        ],
@@ -711,7 +752,7 @@ TEST_CASE("read full configuration")
    auto j = R"( {
     "translations": [
      {
-       "category": "category_name",
+       "group": "group_name",
        "patterns": [
          "pattern1",
          "pattern2"
@@ -776,7 +817,7 @@ TEST_CASE("read full configuration")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
@@ -792,7 +833,7 @@ TEST_CASE("read minimal mandatory configuration")
    auto j = R"( {
     "translations": [
      {
-       "category": "category_name",
+       "group": "group_name",
        "patterns": [
          "pattern1",
          "pattern2"
@@ -831,7 +872,7 @@ TEST_CASE("read minimal mandatory configuration")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "category_name");
+   CHECK(tr.category == "group_name");
    CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;

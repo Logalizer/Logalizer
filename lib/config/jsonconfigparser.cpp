@@ -71,8 +71,9 @@ std::vector<translation> JsonConfigParser::load_translations(json const &config,
 
       const json &jtranslation = item.value();
       const std::string category = get_value_or(jtranslation, TAG_CATEGORY, std::string{});
+      bool enable = get_value_or(jtranslation, TAG_ENABLE, true);
 
-      if (is_disabled(category)) continue;
+      if (!enable || is_disabled(category)) continue;
 
       translation tr;
       tr.category = category;
@@ -113,12 +114,12 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
    std::string csv_file = (p.parent_path() / std::filesystem::path(translations_csv_file)).string();
 
    io::CSVReader<13, io::trim_chars<' '>, io::double_quote_escape<',', '\"'>> in(csv_file);
-   in.read_header(io::ignore_extra_column, "enabled", "group", "print", "duplicates", "pattern1", "pattern2",
-                  "pattern3", "variable1_starts_with", "variable1_ends_with", "variable2_starts_with",
-                  "variable2_ends_with", "variable3_starts_with", "variable3_ends_with");
-   std::string enabled, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e;
-   while (in.read_row(enabled, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e)) {
-      if (enabled == "No" || enabled == "no" || enabled == "False" || enabled == "false" || enabled == "0") {
+   in.read_header(io::ignore_extra_column, "enable", "group", "print", "duplicates", "pattern1", "pattern2", "pattern3",
+                  "variable1_starts_with", "variable1_ends_with", "variable2_starts_with", "variable2_ends_with",
+                  "variable3_starts_with", "variable3_ends_with");
+   std::string enable, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e;
+   while (in.read_row(enable, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e)) {
+      if (enable == "No" || enable == "no" || enable == "False" || enable == "false" || enable == "0") {
          continue;
       }
       if (is_disabled(group)) continue;

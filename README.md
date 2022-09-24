@@ -63,12 +63,12 @@ Example:
 
 + [Translation Configuration](#Translation-Configuration)
   + [translations](#translations)
-    + [category](#category) 
+    + [group](#group) 
     + [patterns](#patterns)
     + [print](#print)
     + [variables](#variables)
     + [duplicates](#duplicates)
-  + [disable_category](#disable_category)
+  + [disable_group](#disable_group)
   + [blacklist](#blacklist)
   + [auto_new_line](#auto_new_line)
   + [wrap_text_pre](#wrap_text_pre)
@@ -97,7 +97,7 @@ Configurations for the lines "The temperature is 38 degrees" and "The pressure i
 ```json
   "translations": [
     {
-      "category": "Temperature_Sensing",
+      "group": "Temperature_Sensing",
       "patterns": ["temperature", "degree"],
       "print": "TemperatureSensor -> Controller: Temperature: ",
       "variables": [
@@ -108,7 +108,7 @@ Configurations for the lines "The temperature is 38 degrees" and "The pressure i
       ]
     },
     {
-      "category": "Pressure_Sensing",
+      "group": "Pressure_Sensing",
       "patterns": ["Pressure"],
       "print": "PressureSensor -> Controller: Pressure: ",
       "variables": [
@@ -121,12 +121,19 @@ Configurations for the lines "The temperature is 38 degrees" and "The pressure i
   ]
 ```
 
-##### `category` 
+##### `group` 
 
-This gives a name to a translation that can later be disabled by `disable_category`. This is optional.
+This gives a name to a translation that can later be disabled by `disable_group`. This is optional.
 
 ```json
-"category": "Temperature_Sensing"
+"group": "Temperature_Sensing"
+```
+##### `enable` 
+
+This to disable a translation. This is optional. By default this is set to true so you don't have to set it to true every time.
+
+```json
+"enable": false
 ```
 
 ##### `patterns` 
@@ -236,7 +243,7 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
 ```json
   "translations": [
     {
-      "category": "Error_Count",
+      "group": "Error_Count",
       "patterns": ["[FATAL]", "[ERROR]"],
       "duplicates": "count_all"
       "print": "note left: ${count} errors found !!!",
@@ -251,7 +258,7 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
 ```json
   "translations": [
     {
-      "category": "Error_Count",
+      "group": "Error_Count",
       "patterns": ["Retrying..."],
       "duplicates": "count_continuous"
       "print": "note left: Retried ${count} times !!!",
@@ -262,12 +269,12 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
 
 ----
 
-#### `disable_category` 
+#### `disable_group` 
 
 This is used to disable a translation or a group of translations. This is like commenting out a group of translations.
 
 ```json
-"disable_category": ["Temperature_Sensing", "Pressure_Sensing"]
+"disable_group": ["Temperature_Sensing", "Pressure_Sensing"]
 ``` 
 
 #### `blacklist` 

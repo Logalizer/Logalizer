@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 #
 # PROJECT name and version
 #
-project(Logalizer VERSION 3.0 LANGUAGES CXX)
+project(Logalizer VERSION 4.0 LANGUAGES CXX)
 
 #set(CMAKE_CXX_CLANG_TIDY clang-tidy
 #    -header-filter=.
@@ -82,7 +82,7 @@ endif()
 # CONFIGURATION
 #
 # The version number.
-set(LOGALIZER_VERSION_MAJOR 3)
+set(LOGALIZER_VERSION_MAJOR 4)
 set(LOGALIZER_VERSION_MINOR 0)
 
 # configure a header file to pass some of the CMake settings to the source code
