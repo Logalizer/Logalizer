@@ -121,6 +121,25 @@ Configurations for the lines "The temperature is 38 degrees" and "The pressure i
   ]
 ```
 
+##### `translations_csv`
+
+You can configure translations in a csv file.
+
+```json
+"translations_csv": "config_translations.csv"
+```
+
+If you use `translations_csv` don't configure `translations`.
+
+If you use csv, you can only have a maximum of 3 patterns and 3 variables.
+
+Example csv
+
+```csv
+enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,variable2_starts_with,variable2_ends_with,variable3_starts_with,variable3_ends_with
+Yes,Networking,client -> server : sayHello,allowed,say_hello,,,,,,,,
+```
+
 ##### `group` 
 
 This gives a name to a translation that can later be disabled by `disable_group`. This is optional.
@@ -128,6 +147,7 @@ This gives a name to a translation that can later be disabled by `disable_group`
 ```json
 "group": "Temperature_Sensing"
 ```
+
 ##### `enable` 
 
 This to disable a translation. This is optional. By default this is set to true so you don't have to set it to true every time.
