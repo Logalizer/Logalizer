@@ -5,6 +5,7 @@
 #include <sstream>
 #include "config_types.h"
 #include "configparser.h"
+#include "external/csv/csv.h"
 
 namespace Logalizer::Config {
 
@@ -104,103 +105,38 @@ std::vector<translation> JsonConfigParser::load_translations(json const &config,
    return translations;
 }
 
-bool JsonConfigParser::parse_translation_line(std::string const &line, translation &tr)
-{
-   bool disabled = false;
-   std::stringstream str(line);
-   std::string field;
-   std::vector<variable> variables;
-   variable var1, var2, var3;
-
-   for (unsigned int columnno = 1; getline(str, field, ','); ++columnno) {
-      switch (columnno) {
-         case 1:  // Enabled
-            if (field == "No" || field == "no" || field == "False" || field == "false" || field == "0") {
-               return false;
-            }
-            break;
-
-         case 2:  // Category
-            if (is_disabled(field)) return false;
-            tr.category = field;
-            break;
-
-         case 3:  // print
-            tr.print = field;
-            if (tr.print.empty()) {
-               std::cerr << "[warn] print not defined or empty\n";
-               return false;
-            }
-            break;
-
-         case 4:  // duplicates
-            tr.duplicates = get_duplicate_type(field);
-            break;
-
-         case 5:  // pattern1
-            if (!field.empty()) tr.patterns.push_back(field);
-            break;
-
-         case 6:  // pattern2
-            if (!field.empty()) tr.patterns.push_back(field);
-            break;
-
-         case 7:  // pattern3
-            if (!field.empty()) tr.patterns.push_back(field);
-            break;
-
-         case 8:  // variable1_starts_with
-            var1.startswith = field;
-            break;
-
-         case 9:  // variable1_ends_with
-            var1.endswith = field;
-            break;
-
-         case 10:  // variable2_starts_with
-            var2.startswith = field;
-            break;
-
-         case 11:  // variable2_ends_with
-            var2.endswith = field;
-            break;
-
-         case 12:  // variable3_starts_with
-            var3.startswith = field;
-            break;
-
-         case 13:  // variable3_ends_with
-            var3.endswith = field;
-            break;
-
-      }  // switch
-   }     // column iteration
-   if (tr.patterns.empty()) {
-      std::cerr << "[warn] patterns empty\n";
-      return false;
-   }
-   if (!var1.startswith.empty() && !var1.endswith.empty()) tr.variables.push_back(var1);
-   if (!var2.startswith.empty() && !var2.endswith.empty()) tr.variables.push_back(var2);
-   if (!var3.startswith.empty() && !var3.endswith.empty()) tr.variables.push_back(var3);
-
-   return true;
-}
-
 std::vector<translation> JsonConfigParser::load_translations_csv(std::string const &translations_csv_file,
                                                                  std::vector<std::string> const &disabled_categories)
 {
    std::vector<translation> translations;
    std::filesystem::path p(config_file_);
-   std::fstream file(p.parent_path().string() + translations_csv_file, std::ios::in);
-   if (!file.is_open()) return translations;
+   std::string csv_file = (p.parent_path() / std::filesystem::path(translations_csv_file)).string();
 
-   std::string line;
-   getline(file, line);  // skip header row
-   while (getline(file, line)) {
-      translation tr;
-      if (parse_translation_line(line, tr)) {
-         translations.push_back(std::move(tr));
+   io::CSVReader<13, io::trim_chars<' '>, io::double_quote_escape<',', '\"'>> in(csv_file);
+   in.read_header(io::ignore_extra_column, "enabled", "group", "print", "duplicates", "pattern1", "pattern2",
+                  "pattern3", "variable1_starts_with", "variable1_ends_with", "variable2_starts_with",
+                  "variable2_ends_with", "variable3_starts_with", "variable3_ends_with");
+   std::string enabled, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e;
+   while (in.read_row(enabled, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e)) {
+      if (enabled == "No" || enabled == "no" || enabled == "False" || enabled == "false" || enabled == "0") {
+         continue;
       }
+      if (is_disabled(group)) continue;
+      if (pattern1.empty() && pattern2.empty() && pattern3.empty()) {
+         std::cerr << "[warn] patterns empty\n";
+         continue;
+      }
+      translation tr;
+      tr.category = group;
+      tr.print = print;
+      tr.duplicates = get_duplicate_type(duplicates);
+      if (!pattern1.empty()) tr.patterns.push_back(pattern1);
+      if (!pattern2.empty()) tr.patterns.push_back(pattern2);
+      if (!pattern3.empty()) tr.patterns.push_back(pattern3);
+      if (!v1s.empty()) tr.variables.push_back(variable{v1s, v1e});
+      if (!v2s.empty()) tr.variables.push_back(variable{v2s, v2e});
+      if (!v3s.empty()) tr.variables.push_back(variable{v3s, v3e});
+      translations.push_back(tr);
    }
    return translations;
 }

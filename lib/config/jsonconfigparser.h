@@ -31,7 +31,6 @@ class JsonConfigParser final : public ConfigParser {
    std::vector<translation> load_translations(nlohmann::json const &config, std::string const &name,
                                               std::vector<std::string> const &disabled_categories);
    duplicates_t get_duplicate_type(std::string const &dup);
-   bool parse_translation_line(std::string const &line, translation &tr);
    std::vector<translation> load_translations_csv(std::string const &translations_csv_file,
                                                   std::vector<std::string> const &disabled_categories);
 };

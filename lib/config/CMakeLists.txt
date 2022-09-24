@@ -23,6 +23,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
 # target_compile_options(config PRIVATE -std=c++17 -O3)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED) # fast-cpp-csv-parser needs this 
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+
 # -std=c++17 is used as cxx_std_17 is not working with mingw
 # target_compile_features( config PRIVATE cxx_std_17)
 
