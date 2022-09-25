@@ -77,6 +77,8 @@ jobs:
         if: startsWith(matrix.config.os, 'windows')
         run: |
           choco install ninja cmake wxwidgets
+          vcpkg install wxwidgets
+          vcpkg install wxwidgets:x64-windows
           ninja --version
           cmake --version
         # cmd "${{ matrix.config.environment_script }}"
@@ -85,7 +87,7 @@ jobs:
         if: startsWith(matrix.config.name, 'Ubuntu_Latest_GCC')
         run: |
           sudo apt-get update
-          sudo apt-get install ninja-build cmake
+          sudo apt-get install ninja-build cmake libwxbase3.0-0v5
           ninja --version
           cmake --version
           gcc --version
@@ -97,7 +99,7 @@ jobs:
           gcc --version
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           sudo apt-get update
-          sudo apt-get install ninja-build cmake gcc-9 g++-9
+          sudo apt-get install ninja-build cmake gcc-9 g++-9 libwxbase3.0-0v5
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9 --slave /usr/bin/gcov gcov /usr/bin/gcov-9
           echo gcc version after
           gcc --version
