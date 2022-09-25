@@ -77,7 +77,7 @@ jobs:
         if: startsWith(matrix.config.os, 'windows')
         run: |
           choco install ninja cmake
-          vcpkg install wxwidgets:x64-windows
+          vcpkg install wxwidgets:x64-windows-rel
           ninja --version
           cmake --version
         # cmd "${{ matrix.config.environment_script }}"
