@@ -14,6 +14,8 @@ else()
   add_executable(${PROJECT_NAME} ${SRC_FILES})
 endif()
 
+option(wxWidgets_USE_STATIC "Link to wxWidgets statically" ON)
+set(wxWidgets_USE_STATIC ON)
 find_package(wxWidgets COMPONENTS core base OPTIONAL_COMPONENTS net)
 include(${wxWidgets_USE_FILE})
 target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES})
