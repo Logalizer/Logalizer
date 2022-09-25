@@ -76,8 +76,7 @@ jobs:
       - name: Install dependencies on windows
         if: startsWith(matrix.config.os, 'windows')
         run: |
-          choco install ninja cmake wxwidgets
-          vcpkg install wxwidgets
+          choco install ninja cmake
           vcpkg install wxwidgets:x64-windows
           ninja --version
           cmake --version
@@ -133,7 +132,22 @@ jobs:
           ninja --version
           cmake --version
           
-      - name: Configure
+      - name: Configure CMake windows
+        if: startsWith(matrix.config.os, 'windows')
+        shell: bash
+        run: |
+          mkdir build
+          mkdir instdir
+          cmake \
+            -S . \
+            -B . \
+            "-DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -G "${{ matrix.config.generators }}" \
+            -DCMAKE_INSTALL_PREFIX:PATH=instdir
+
+      - name: Configure CMake 
+        if: startsWith(matrix.config.os, 'macos') || startsWith(matrix.config.name, 'Ubuntu_GCC_9') || startsWith(matrix.config.name, 'Ubuntu_Latest_GCC')
         shell: bash
         run: |
           mkdir build
@@ -144,6 +158,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -G "${{ matrix.config.generators }}" \
             -DCMAKE_INSTALL_PREFIX:PATH=instdir
+
       - name: Build
         shell: bash
         run: cmake --build . --config ${{ matrix.config.build_type }}
