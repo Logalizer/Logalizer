@@ -413,7 +413,7 @@ You can use [Special Variables for Path](#Special-Variables-for-Path).
 
 ```json
 "execute": [
-  "java -DPLANTUML_LIMIT_SIZE=32768 -jar plantuml.jar \"${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_sequence.txt\"",
+  "java -DPLANTUML_LIMIT_SIZE=32768 -jar ${exeDirname}/plantuml.jar \"${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_sequence.txt\"",
   "rm \"${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_sequence.txt\""
 ]
 ```
@@ -426,6 +426,7 @@ This example configuration runs
 
 ### Special Variables for Path
 
+- `${exeDirname}` - The path to the directory in which the executable file (Logalizer) is present
 - `${fileDirname}` - The path to the directory in which the input file is present
 - `${fileBasename}` - The name of the input file
 - `${fileBasenameNoExtension}` - The name of the input file without extension

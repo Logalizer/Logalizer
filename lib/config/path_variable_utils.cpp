@@ -1,28 +1,32 @@
-#include "path_variable_utils.h"
-#include <sys/stat.h>
 #include <filesystem>
+
+#ifdef _WIN32
+#include <windows.h>  //GetModuleFileNameW
+#else
+#include <limits.h>
+#include <unistd.h>  //readlink
+#endif
 
 namespace fs = std::filesystem;
 namespace Logalizer::Config::Utils {
 
-static const std::string VAR_FILE_DIR_NAME = "${fileDirname}";
-static const std::string VAR_FILE_BASE_NO_EXTENSION = "${fileBasenameNoExtension}";
-static const std::string VAR_FILE_BASE_WITH_EXTENSION = "${fileBasename}";
-
-void replace_all(std::string *input, std::string const &token, std::string const &replace)
+std::string get_exe_path()
 {
-   size_t pos = input->find(token);
-   while (pos != std::string::npos) {
-      input->replace(pos, token.length(), replace);
-      pos = input->find(token);
-   }
+#ifdef _WIN32
+   wchar_t path[MAX_PATH] = {0};
+   GetModuleFileNameW(NULL, path, MAX_PATH);
+   return fs::path(path).string();
+#else
+   char result[PATH_MAX];
+   ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+   return std::string(result, (count > 0) ? count : 0);
+#endif
 }
 
-void replace_paths(std::string *input, std::string const &dir, std::string const &file)
+std::string get_exe_dir()
 {
-   replace_all(input, VAR_FILE_DIR_NAME, dir);
-   replace_all(input, VAR_FILE_BASE_WITH_EXTENSION, file);
-   replace_all(input, VAR_FILE_BASE_NO_EXTENSION, fs::path(file).replace_extension(""));
+   fs::path exepath(get_exe_path());
+   return exepath.parent_path().string();
 }
 
 }  // namespace Logalizer::Config::Utils

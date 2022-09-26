@@ -2,6 +2,7 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include "path_variable_utils.h"
 
 namespace Logalizer::Config {
 
@@ -11,9 +12,10 @@ void ConfigParser::update_path_variables()
       *input = std::regex_replace(*input, std::regex(VAR_FILE_DIR_NAME), input_file_details_.dir);
       *input = std::regex_replace(*input, std::regex(VAR_FILE_BASE_WITH_EXTENSION), input_file_details_.file);
       *input = std::regex_replace(*input, std::regex(VAR_FILE_BASE_NO_EXTENSION), input_file_details_.file_no_ext);
+      *input = std::regex_replace(*input, std::regex(VAR_EXE_DIR_NAME), Utils::get_exe_dir());
    };
-   std::for_each(begin(execute_commands_), end(execute_commands_), [&](auto &command) { update_path_vars(&command); });
 
+   std::for_each(begin(execute_commands_), end(execute_commands_), [&](auto &command) { update_path_vars(&command); });
    update_path_vars(&backup_file_);
    update_path_vars(&translation_file_);
 }
