@@ -33,7 +33,11 @@ static const std::string VAR_FILE_DIR_NAME = "\\$\\{fileDirname\\}";
 static const std::string VAR_EXE_DIR_NAME = "\\$\\{exeDirname\\}";
 static const std::string VAR_FILE_BASE_NO_EXTENSION = "\\$\\{fileBasenameNoExtension\\}";
 static const std::string VAR_FILE_BASE_WITH_EXTENSION = "\\$\\{fileBasename\\}";
-
+/**
+ * @brief Base class that defines what configurations are needed for Logalizer
+ *
+ *
+ */
 class ConfigParser {
   public:
    ConfigParser() = default;

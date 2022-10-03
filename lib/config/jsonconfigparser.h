@@ -4,10 +4,13 @@
 #include "external/json/single_include/nlohmann/json.hpp"
 
 namespace Logalizer::Config {
-
+/**
+ * @brief Parses Json configuration
+ *
+ */
 class JsonConfigParser final : public ConfigParser {
   public:
-   JsonConfigParser(const std::string &config_file = "config.json");
+   JsonConfigParser(const std::string& config_file = "config.json");
    JsonConfigParser(nlohmann::json config);
    virtual void load_disabled_categories() override;
    virtual void load_translations() override;
@@ -26,12 +29,12 @@ class JsonConfigParser final : public ConfigParser {
    nlohmann::json config_;
    std::string config_file_;
    template <class T>
-   T get_value_or(nlohmann::json const &config, std::string const &name, T value);
-   std::vector<variable> get_variables(nlohmann::json const &config);
-   std::vector<translation> load_translations(nlohmann::json const &config, std::string const &name,
-                                              std::vector<std::string> const &disabled_categories);
-   duplicates_t get_duplicate_type(std::string const &dup);
-   std::vector<translation> load_translations_csv(std::string const &translations_csv_file,
-                                                  std::vector<std::string> const &disabled_categories);
+   T get_value_or(nlohmann::json const& config, std::string const& name, T value);
+   std::vector<variable> get_variables(nlohmann::json const& config);
+   std::vector<translation> load_translations(nlohmann::json const& config, std::string const& name,
+                                              std::vector<std::string> const& disabled_categories);
+   duplicates_t get_duplicate_type(std::string const& dup);
+   std::vector<translation> load_translations_csv(std::string const& translations_csv_file,
+                                                  std::vector<std::string> const& disabled_categories);
 };
 }  // namespace Logalizer::Config

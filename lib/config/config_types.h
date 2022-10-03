@@ -7,21 +7,39 @@
 namespace Logalizer::Config {
 
 /**
- *  It might be needed to extract a substring from a line.
- * This substring will be a vaiable.
- * To capture that variable we look for the surrounding string.
+ * @brief variable is used to extract a substring from a line
+ *
+ * This substring is called a vaiable.
+ * To capture variables we look for the surrounding string.
+ * The string that preceds the variable text is start string.
+ * The string that follows the variable text is end string.
  * Variable structure holds the start string and end string.
- * With this information we can extract the middle variable.
+ * With this information we can extract the middle content as variable.
  */
+
 struct variable {
    std::string startswith;
    std::string endswith;
 };
 
-enum class duplicates_t { allowed, remove, remove_continuous, count, count_continuous };
+/**
+ * @brief Defines how to handle duplicates in translation
+ *
+ */
+enum class duplicates_t {
+   allowed,            /// Allow duplicates, by default all are allowed
+   remove,             /// Removes all duplicates in the translation and keeps only the first entry
+   remove_continuous,  /// Removes duplicates entries that occurs continuously in the translation. Only continuous
+                       /// entries are removed.
+   count,            /// Same as remove and additionally helps count duplicates. Updates `${count}` in the first entry.
+   count_continuous  /// Same as remove_continuous. Additionally it counts continuously occurring duplicates and updates
+                     /// `${count}` in the corresponding entry.
+};
 
 /**
- *  This hold the data populated in "translations" in the config file.
+ * @brief translation holds all the configuration needed to translate a line
+ *
+ * This holds the data populated in "translations" in the config file.
  * This will hold the information to translate a particular line to a different one.
  */
 struct translation {
@@ -31,9 +49,9 @@ struct translation {
    std::vector<variable> variables;
    duplicates_t duplicates = duplicates_t::allowed;
 
-   [[nodiscard]] bool in(std::string const &line) const
+   [[nodiscard]] bool in(std::string const& line) const
    {
-      auto matches = [&line](auto const &pattern) {
+      auto matches = [&line](auto const& pattern) {
          if (line.find(pattern) != std::string::npos)
             return true;
          else
@@ -43,6 +61,11 @@ struct translation {
    }
 };
 
+/**
+ * @brief Holds search and replace tokens
+ *
+ * This will be used to search a token and replace it in the input line
+ */
 struct replacement {
    std::string search;
    std::string replace;
@@ -51,11 +74,19 @@ struct replacement {
    }
 };
 
+/**
+ * @brief Holds the path to backup and translation files
+ *
+ */
 struct output_files {
    std::string backup;
    std::string translation;
 };
 
+/**
+ * @brief Holds the directory, file name and file name without extension of the input file
+ *
+ */
 struct path_vars {
    std::string dir;
    std::string file;

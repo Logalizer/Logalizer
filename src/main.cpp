@@ -52,7 +52,7 @@ void printConfigHelp()
   ],
   "translations": [
     {
-      "category": "Networking",
+      "group": "Networking",
       "patterns": [
         "say_hello"
       ],
@@ -60,7 +60,7 @@ void printConfigHelp()
       "variables": []
     },
     {
-      "category": "Networking",
+      "group": "Networking",
       "patterns": [
         "start_routine"
       ],
@@ -73,7 +73,7 @@ void printConfigHelp()
       ]
     },
     {
-      "category": "Networking",
+      "group": "Networking",
       "patterns": [
         "Today",
         "temperature"
@@ -91,8 +91,8 @@ void printConfigHelp()
       ]
     }
   ],
-  "disable_category": [
-    "exclude a particular category of translations"
+  "disable_group": [
+    "exclude a particular group of translations"
   ],
   "wrap_text_pre": [
     "@startuml",
@@ -125,12 +125,24 @@ void printConfigHelp()
 
 using namespace Logalizer::Config;
 
+/**
+ * @brief To store values from command line arguments
+ *
+ */
 struct CMD_Args {
+   /**
+    * @brief Path to input config file
+    *
+    */
    const std::string config_file;
+   /**
+    * @brief Input file that needs to be translated
+    *
+    */
    const std::string log_file;
 };
 
-CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
+CMD_Args parse_cmd_line(const std::vector<std::string_view>& args)
 {
    std::string log_file, config_file;
    for (auto it = cbegin(args), endit = cend(args); it != endit; ++it) {
@@ -176,7 +188,7 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view> &args)
    return {config_file, log_file};
 }
 
-void backup_if_not_exists(const std::string &original, const std::string &backup)
+void backup_if_not_exists(const std::string& original, const std::string& backup)
 {
    if (original.empty() || backup.empty()) return;
 
@@ -186,7 +198,7 @@ void backup_if_not_exists(const std::string &original, const std::string &backup
          fs::copy_file(original, backup);
       }
    }
-   catch (std::exception &e) {
+   catch (std::exception& e) {
       std::cerr << "Backup failed : " << e.what();
    }
 }
@@ -209,14 +221,14 @@ void start_benchmark()
    start_time = std::chrono::high_resolution_clock::now();
 }
 
-void end_benchmark(std::string const &print)
+void end_benchmark(std::string const& print)
 {
    end_time = std::chrono::high_resolution_clock::now();
    auto count = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
    std::cout << '[' << count << "ms] " << print << '\n';
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
    const std::vector<std::string_view> args(argv, argv + argc);
    const CMD_Args cmd_args = parse_cmd_line(args);
@@ -228,7 +240,7 @@ int main(int argc, char **argv)
       config.read_config_file();
       config.load_configurations();
    }
-   catch (std::exception &e) {
+   catch (std::exception& e) {
       std::cerr << "Loading configuration failed\n";
       std::cerr << e.what();
       exit(2);
