@@ -1,0 +1,37 @@
+{
+  "sample log": [
+    "2019-07-13 14:29:05:147 [Networking] DisplayClient say_hello: asking to connect to server",
+    "2019-07-13 14:29:06:239 [Networking] DisplayClient server_response: Today's is a hot day with a max temperature of 37C possibly",
+    "2019-07-13 14:29:06:239 [Networking] DisplayClient start_routine: state=waiting, entering locked state"
+  ],
+  "translations_csv": "sample_translation.csv",
+  "disable_group": [
+    "exclude a particular group of translations"
+  ],
+  "wrap_text_pre": [
+    "@startuml",
+    "skinparam dpi 300"
+  ],
+  "wrap_text_post": [
+    "== Done ==",
+    "@enduml"
+  ],
+  "blacklist": [
+    "Do not translate this line",
+    "and this line too"
+  ],
+  "delete_lines": [
+    "Delete this line from the trace",
+    "2017.* regex lines are very slow"
+  ],
+  "replace_words": {
+    "search": "replace"
+  },
+  "execute": [
+    "java -DPLANTUML_LIMIT_SIZE=32768 -jar ${exeDirname}/plantuml/plantuml.jar -tpng \"${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.txt\"",
+    "\"${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.png\""
+  ],
+  "backup_file": "${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.original",
+  "translation_file": "${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.txt",
+  "auto_new_line": true
+}

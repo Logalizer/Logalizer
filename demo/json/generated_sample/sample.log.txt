@@ -1,0 +1,7 @@
+@startuml
+skinparam dpi 300
+client -> server : sayHello
+server -> client : Today is hot and 37C
+client -> server : start_routine(waiting)
+== Done ==
+@enduml

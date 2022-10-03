@@ -1,0 +1,77 @@
+{
+  "auto_new_line": true,
+  "backup_file": "${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.original",
+  "blacklist": [
+    "Do not translate this line",
+    "and this line too"
+  ],
+  "delete_lines": [
+    "Delete this line from the trace",
+    "2017.* regex lines are very slow"
+  ],
+  "disable_group": [
+    "exclude a particular group of translations"
+  ],
+  "execute": [
+    "java -DPLANTUML_LIMIT_SIZE=32768 -jar ${exeDirname}/plantuml/plantuml.jar -tpng \"${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.txt\"",
+    "\"${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.png\""
+  ],
+  "replace_words": {
+    "search": "replace"
+  },
+  "sample log": [
+    "2019-07-13 14:29:05:147 [Networking] DisplayClient say_hello: asking to connect to server",
+    "2019-07-13 14:29:06:239 [Networking] DisplayClient server_response: Today's is a hot day with a max temperature of 37C possibly",
+    "2019-07-13 14:29:06:239 [Networking] DisplayClient start_routine: state=waiting, entering locked state"
+  ],
+  "translation_file": "${fileDirname}/generated_${fileBasenameNoExtension}/${fileBasename}.txt",
+  "translations": [
+    {
+      "group": "Networking",
+      "patterns": [
+        "say_hello"
+      ],
+      "print": "client -> server : sayHello",
+      "variables": []
+    },
+    {
+      "group": "Networking",
+      "patterns": [
+        "start_routine"
+      ],
+      "print": "client -> server : start_routine",
+      "variables": [
+        {
+          "startswith": "state=",
+          "endswith": ", entering"
+        }
+      ]
+    },
+    {
+      "group": "Networking",
+      "patterns": [
+        "Today",
+        "temperature"
+      ],
+      "print": "server -> client : Today is ${1} and ${2}",
+      "variables": [
+        {
+          "startswith": "is a ",
+          "endswith": " day"
+        },
+        {
+          "startswith": "of ",
+          "endswith": " possibly"
+        }
+      ]
+    }
+  ],
+  "wrap_text_post": [
+    "== Done ==",
+    "@enduml"
+  ],
+  "wrap_text_pre": [
+    "@startuml",
+    "skinparam dpi 300"
+  ]
+}

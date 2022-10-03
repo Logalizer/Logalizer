@@ -1,0 +1,3 @@
+2019-07-13 14:29:05:147 [Networking] DisplayClient say_hello: asking to connect to server
+2019-07-13 14:29:06:239 [Networking] DisplayClient server_response: Today's is a hot day with a max temperature of 37C possibly
+2019-07-13 14:29:06:239 [Networking] DisplayClient start_routine: state=waiting, entering locked state
