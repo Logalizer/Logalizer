@@ -2506,7 +2506,8 @@ DIAFILE_DIRS           =
 # generate a warning when it encounters a \startuml command in this case and
 # will not generate output for the diagram.
 
-PLANTUML_JAR_PATH      = "/usr/local/bin/plantuml.jar"
+#PLANTUML_JAR_PATH      = "/usr/local/bin/plantuml.jar"
+PLANTUML_JAR_PATH      = @DOXYFILE_PLANTUML@
 
 # When using plantuml, the PLANTUML_CFG_FILE tag can be used to specify a
 # configuration file for plantuml.
@@ -2582,3 +2583,4 @@ GENERATE_TREEVIEW      = YES # optional. Also works without treeview
 DISABLE_INDEX = NO
 FULL_SIDEBAR = NO
 HTML_EXTRA_STYLESHEET  = @DOXYFILE_CSS@
+

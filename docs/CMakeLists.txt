@@ -12,6 +12,11 @@ set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in)
 set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 set(DOXYFILE_CSS ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/doxygen-awesome-css/doxygen-awesome.css)
 set(DOXYFILE_EXCLUDE "${PROJECT_SOURCE_DIR}/lib/config/external ${PROJECT_SOURCE_DIR}/docs/doxygen")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+  set(DOXYFILE_PLANTUML "C:/ProgramData/chocolatey/lib/plantuml/tools/plantuml.jar")
+else()
+  set(DOXYFILE_PLANTUML /usr/share/plantuml/plantuml.jar)
+endif()
 
 # Replace variables inside @@ with the current values
 configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
@@ -31,6 +36,3 @@ add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
 add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 
 # Add an install target to install the docs
-include(GNUInstallDirs)
-install(DIRECTORY ${SPHINX_BUILD}
-	DESTINATION ${CMAKE_INSTALL_DOCDIR})
