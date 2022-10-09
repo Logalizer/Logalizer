@@ -10,20 +10,20 @@ namespace Logalizer::Config {
  */
 class JsonConfigParser final : public ConfigParser {
   public:
-   JsonConfigParser(const std::string& config_file = "config.json");
+   JsonConfigParser(std::string config_file = "config.json");
    JsonConfigParser(nlohmann::json config);
-   virtual void load_disabled_categories() override;
-   virtual void load_translations() override;
-   virtual void load_wrap_text() override;
-   virtual void load_blacklists() override;
-   virtual void load_delete_lines() override;
-   virtual void load_replace_words() override;
-   virtual void load_execute() override;
-   virtual void load_translation_file() override;
-   virtual void load_backup_file() override;
-   virtual void load_auto_new_line() override;
+   void load_disabled_categories() override;
+   void load_translations() override;
+   void load_wrap_text() override;
+   void load_blacklists() override;
+   void load_delete_lines() override;
+   void load_replace_words() override;
+   void load_execute() override;
+   void load_translation_file() override;
+   void load_backup_file() override;
+   void load_auto_new_line() override;
 
-   virtual void read_config_file() override;
+   void read_config_file() override;
 
   private:
    nlohmann::json config_;
@@ -31,10 +31,7 @@ class JsonConfigParser final : public ConfigParser {
    template <class T>
    T get_value_or(nlohmann::json const& config, std::string const& name, T value);
    std::vector<variable> get_variables(nlohmann::json const& config);
-   std::vector<translation> load_translations(nlohmann::json const& config, std::string const& name,
-                                              std::vector<std::string> const& disabled_categories);
-   duplicates_t get_duplicate_type(std::string const& dup);
-   std::vector<translation> load_translations_csv(std::string const& translations_csv_file,
-                                                  std::vector<std::string> const& disabled_categories);
+   std::vector<translation> load_translations(nlohmann::json const& config, std::string const& name);
+   std::vector<translation> load_translations_csv(std::string const& translations_csv_file);
 };
 }  // namespace Logalizer::Config

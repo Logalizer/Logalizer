@@ -40,29 +40,7 @@ std::vector<variable> JsonConfigParser::get_variables(json const &config)
    return variables;
 }
 
-duplicates_t JsonConfigParser::get_duplicate_type(std::string const &dup)
-{
-   if (dup.empty()) {
-      return duplicates_t::allowed;
-   }
-   else if (dup == TAG_DUPLICATES_REMOVE) {
-      return duplicates_t::remove;
-   }
-   else if (dup == TAG_DUPLICATES_REMOVE_CONTINUOUS) {
-      return duplicates_t::remove_continuous;
-   }
-   else if (dup == TAG_DUPLICATES_COUNT) {
-      return duplicates_t::count;
-   }
-   else if (dup == TAG_DUPLICATES_COUNT_CONTINUOUS) {
-      return duplicates_t::count_continuous;
-   }
-
-   return duplicates_t::allowed;
-}
-
-std::vector<translation> JsonConfigParser::load_translations(json const &config, std::string const &name,
-                                                             std::vector<std::string> const &disabled_categories)
+std::vector<translation> JsonConfigParser::load_translations(json const &config, std::string const &name)
 {
    std::vector<translation> translations;
 
@@ -73,7 +51,9 @@ std::vector<translation> JsonConfigParser::load_translations(json const &config,
       const std::string category = get_value_or(jtranslation, TAG_CATEGORY, std::string{});
       bool enable = get_value_or(jtranslation, TAG_ENABLE, true);
 
-      if (!enable || is_disabled(category)) continue;
+      if (!enable || is_disabled(category)) {
+         continue;
+      }
 
       translation tr;
       tr.category = category;
@@ -106,14 +86,14 @@ std::vector<translation> JsonConfigParser::load_translations(json const &config,
    return translations;
 }
 
-std::vector<translation> JsonConfigParser::load_translations_csv(std::string const &translations_csv_file,
-                                                                 std::vector<std::string> const &disabled_categories)
+std::vector<translation> JsonConfigParser::load_translations_csv(std::string const &translations_csv_file)
 {
    std::vector<translation> translations;
    std::filesystem::path p(config_file_);
    std::string csv_file = (p.parent_path() / std::filesystem::path(translations_csv_file)).string();
 
-   io::CSVReader<13, io::trim_chars<' '>, io::double_quote_escape<',', '\"'>> in(csv_file);
+   const short no_of_columns = 13;
+   io::CSVReader<no_of_columns, io::trim_chars<' '>, io::double_quote_escape<',', '\"'>> in(csv_file);
    in.read_header(io::ignore_extra_column, "enable", "group", "print", "duplicates", "pattern1", "pattern2", "pattern3",
                   "variable1_starts_with", "variable1_ends_with", "variable2_starts_with", "variable2_ends_with",
                   "variable3_starts_with", "variable3_ends_with");
@@ -122,7 +102,9 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
       if (enable == "No" || enable == "no" || enable == "False" || enable == "false" || enable == "0") {
          continue;
       }
-      if (is_disabled(group)) continue;
+      if (is_disabled(group)) {
+         continue;
+      }
       if (pattern1.empty() && pattern2.empty() && pattern3.empty()) {
          std::cerr << "[warn] patterns empty\n";
          continue;
@@ -131,20 +113,34 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
       tr.category = group;
       tr.print = print;
       tr.duplicates = get_duplicate_type(duplicates);
-      if (!pattern1.empty()) tr.patterns.push_back(pattern1);
-      if (!pattern2.empty()) tr.patterns.push_back(pattern2);
-      if (!pattern3.empty()) tr.patterns.push_back(pattern3);
-      if (!v1s.empty()) tr.variables.push_back(variable{v1s, v1e});
-      if (!v2s.empty()) tr.variables.push_back(variable{v2s, v2e});
-      if (!v3s.empty()) tr.variables.push_back(variable{v3s, v3e});
+      if (!pattern1.empty()) {
+         tr.patterns.push_back(pattern1);
+      }
+      if (!pattern2.empty()) {
+         tr.patterns.push_back(pattern2);
+      }
+      if (!pattern3.empty()) {
+         tr.patterns.push_back(pattern3);
+      }
+      if (!v1s.empty()) {
+         tr.variables.push_back(variable{v1s, v1e});
+      }
+      if (!v2s.empty()) {
+         tr.variables.push_back(variable{v2s, v2e});
+      }
+      if (!v3s.empty()) {
+         tr.variables.push_back(variable{v3s, v3e});
+      }
       translations.push_back(tr);
    }
    return translations;
 }
 
-JsonConfigParser::JsonConfigParser(std::string const &config_file) : config_file_(config_file)
+JsonConfigParser::JsonConfigParser(std::string config_file) : config_file_(std::move(config_file))
 {
-   if (config_file_.empty()) config_file_ = "config.json";
+   if (config_file_.empty()) {
+      config_file_ = "config.json";
+   }
 }
 
 JsonConfigParser::JsonConfigParser(nlohmann::json config)
@@ -161,7 +157,7 @@ void JsonConfigParser::read_config_file()
 
 void JsonConfigParser::load_disabled_categories()
 {
-   disabled_categories_ = config_.at(TAG_DISABLE_CATEGORY).get<std::vector<std::string>>();
+   set_disabled_categories(config_.at(TAG_DISABLE_CATEGORY).get<std::vector<std::string>>());
 }
 
 void JsonConfigParser::load_translations()
@@ -174,7 +170,7 @@ void JsonConfigParser::load_translations()
       translations_csv_file = "";
    }
    if (!translations_csv_file.empty()) {
-      translations_ = load_translations_csv(translations_csv_file, disabled_categories_);
+      set_translations(load_translations_csv(translations_csv_file));
       try {
          config_.at(TAG_TRANSLATIONS);
          std::cerr << "[warn] " << TAG_TRANSLATIONS << " is not read in the presence of " << TAG_TRANSLATIONS_CSV
@@ -184,20 +180,19 @@ void JsonConfigParser::load_translations()
       }
    }
    else {
-      translations_ = load_translations(config_, TAG_TRANSLATIONS, disabled_categories_);
+      set_translations(load_translations(config_, TAG_TRANSLATIONS));
    }
 }
 
 void JsonConfigParser::load_wrap_text()
 {
    try {
-      wrap_text_pre_ = config_.at(TAG_WRAPTEXT_PRE).get<std::vector<std::string>>();
+      set_wrap_text_pre(config_.at(TAG_WRAPTEXT_PRE).get<std::vector<std::string>>());
    }
    catch (...) {
    }
    try {
-      // wrap_text_post_ = std::vector<std::string>(config_.at(TAG_WRAPTEXT_POST));
-      wrap_text_post_ = config_.at(TAG_WRAPTEXT_POST).get<std::vector<std::string>>();
+      set_wrap_text_post(config_.at(TAG_WRAPTEXT_POST).get<std::vector<std::string>>());
    }
    catch (...) {
    }
@@ -207,7 +202,7 @@ void JsonConfigParser::load_blacklists()
 {
    try {
       // blacklists_ = std::vector<std::string>(config_.at(TAG_BLACKLIST));
-      blacklists_ = config_.at(TAG_BLACKLIST).get<std::vector<std::string>>();
+      set_blacklists(config_.at(TAG_BLACKLIST).get<std::vector<std::string>>());
    }
    catch (...) {
    }
@@ -215,19 +210,23 @@ void JsonConfigParser::load_blacklists()
 
 void JsonConfigParser::load_delete_lines()
 {
-   const std::vector<std::string> deletors = config_.at(TAG_DELETE_LINES).get<std::vector<std::string>>();
+   auto deletors = config_.at(TAG_DELETE_LINES).get<std::vector<std::string>>();
 
+   std::vector<std::regex> delete_lines_regex;
+   std::vector<std::string> delete_lines;
    for (auto const &entry : deletors) {
       if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
-         delete_lines_regex_.emplace_back(
+         delete_lines_regex.emplace_back(
              entry, std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize);
       }
       else {
-         delete_lines_.emplace_back(entry);
+         delete_lines.emplace_back(entry);
       }
    }
+   set_delete_lines_regex(delete_lines_regex);
+   set_delete_lines(delete_lines);
 
-   if (delete_lines_regex_.size()) {
+   if (!delete_lines_regex.empty()) {
       std::cerr << "[warn] Use of regex in " << TAG_DELETE_LINES << " is a lot slower. Use normal search instead,\n";
       for (auto const &entry : deletors) {
          if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
@@ -240,29 +239,31 @@ void JsonConfigParser::load_delete_lines()
 void JsonConfigParser::load_replace_words()
 {
    const json j_tr = config_.at(TAG_REPLACE_WORDS);
+   std::vector<replacement> replace_words;
    for (const auto &[key, value] : j_tr.items()) {
-      replace_words_.emplace_back(key, value);
+      replace_words.emplace_back(key, value);
    }
+   set_replace_words(replace_words);
 }
 
 void JsonConfigParser::load_execute()
 {
-   execute_commands_ = config_.at(TAG_EXECUTE).get<std::vector<std::string>>();
+   set_execute_commands(config_.at(TAG_EXECUTE).get<std::vector<std::string>>());
 }
 
 void JsonConfigParser::load_translation_file()
 {
-   translation_file_ = config_.at(TAG_TRANSLATION_FILE);
+   set_translation_file(config_.at(TAG_TRANSLATION_FILE));
 }
 
 void JsonConfigParser::load_backup_file()
 {
-   backup_file_ = config_.at(TAG_BACKUP_FILE);
+   set_backup_file(config_.at(TAG_BACKUP_FILE));
 }
 
 void JsonConfigParser::load_auto_new_line()
 {
-   auto_new_line_ = config_.at(TAG_AUTO_NEW_LINE);
+   set_auto_new_line(config_.at(TAG_AUTO_NEW_LINE));
 }
 
 }  // namespace Logalizer::Config

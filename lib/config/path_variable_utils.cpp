@@ -3,8 +3,8 @@
 #ifdef _WIN32
 #include <windows.h>  //GetModuleFileNameW
 #else
-#include <limits.h>
 #include <unistd.h>  //readlink
+#include <climits>
 #endif
 
 namespace fs = std::filesystem;

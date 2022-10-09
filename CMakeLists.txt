@@ -14,8 +14,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "") # works
 add_subdirectory(lib/config)
 add_subdirectory(src)
 
-if(UNIX)
-  add_subdirectory(docs)
+option(BUILD_DOCS "Build doxygen docs" OFF)
+if(BUILD_DOCS)
+    add_subdirectory(docs)
 endif()
 
 include(CTest)

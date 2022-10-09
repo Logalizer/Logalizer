@@ -13,7 +13,9 @@ using namespace Logalizer::Config;
 std::string Translator::fetch_values_regex(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
-   if (variables.size() == 0) return value;
+   if (variables.empty()) {
+      return value;
+   }
 
    value = "(";
 
@@ -37,17 +39,23 @@ std::string Translator::fetch_values_regex(std::string const &line, std::vector<
 std::string Translator::fetch_values_braced(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
-   if (variables.size() == 0) return value;
+   if (variables.empty()) {
+      return value;
+   }
 
    value = "(";
 
    for (auto const &v : variables) {
       auto start_point = line.find(v.startswith);
-      if (start_point == std::string::npos) continue;
+      if (start_point == std::string::npos) {
+         continue;
+      }
 
       start_point += v.startswith.size();
       auto end_point = line.find(v.endswith, start_point);
-      if (end_point == std::string::npos) continue;
+      if (end_point == std::string::npos) {
+         continue;
+      }
 
       std::string capture(line.cbegin() + static_cast<long>(start_point), line.cbegin() + static_cast<long>(end_point));
 
@@ -65,7 +73,9 @@ std::string Translator::fetch_values_braced(std::string const &line, std::vector
 std::string Translator::capture_values(variable const &var, std::string const &content)
 {
    auto start_point = content.find(var.startswith);
-   if (start_point == std::string::npos) return " ";
+   if (start_point == std::string::npos) {
+      return " ";
+   }
 
    start_point += var.startswith.size();
    const auto end_point = content.find(var.endswith, start_point);
@@ -84,7 +94,9 @@ std::string Translator::capture_values(variable const &var, std::string const &c
 std::vector<std::string> Translator::variable_values(std::string const &line, std::vector<variable> const &variables)
 {
    std::vector<std::string> value;
-   if (variables.size() == 0) return {};
+   if (variables.empty()) {
+      return {};
+   }
 
    std::transform(cbegin(variables), cend(variables), std::back_inserter(value),
                   [&line, this](auto const &var) { return capture_values(var, line); });
@@ -94,7 +106,7 @@ std::vector<std::string> Translator::variable_values(std::string const &line, st
 
 std::string Translator::pack_parameters(std::vector<std::string> const &v)
 {
-   auto comma_fold = [](std::string a, std::string b) { return a + ", " + b; };
+   auto comma_fold = [](const std::string &a, const std::string &b) { return a + ", " + b; };
    const std::string initial_value = "(" + v[0];
    std::string params = std::accumulate(next(cbegin(v)), cend(v), initial_value, comma_fold) + ")";
    return params;
@@ -117,7 +129,7 @@ std::string Translator::update_variables(std::vector<std::string> const &values,
    if (formatted_print) {
       filled_line = fill_values_formatted(values, line_to_fill);
    }
-   else if (values.size()) {
+   else if (!values.empty()) {
       filled_line = line_to_fill + pack_parameters(values);
    }
    else {
@@ -152,7 +164,9 @@ auto Translator::get_matching_translator(std::string const &line)
    bool deleted = std::any_of(cbegin(delete_lines), cend(delete_lines),
                               [&line](auto const &dl) { return line.find(dl) != std::string::npos; });
 
-   if (deleted) return true;
+   if (deleted) {
+      return true;
+   }
 
    deleted = std::any_of(cbegin(delete_lines_regex), cend(delete_lines_regex),
                          [&line](auto const &dl) { return regex_search(line, dl); });
@@ -178,12 +192,15 @@ void Translator::add_translation(std::string &&translation, duplicates_t duplica
          break;
       }
       case duplicates_t::remove: {
-         if (contains(translation) == translations.cend()) translations.emplace_back(std::move(translation));
+         if (contains(translation) == translations.cend()) {
+            translations.emplace_back(std::move(translation));
+         }
          break;
       }
       case duplicates_t::remove_continuous: {
-         if (translations.empty() || translation != translations.back())
+         if (translations.empty() || translation != translations.back()) {
             translations.emplace_back(std::move(translation));
+         }
          break;
       }
       case duplicates_t::count: {
@@ -211,7 +228,7 @@ void Translator::update_count()
 {
    for (auto const &[index, count] : trans_count) {
       translations[index] =
-          std::regex_replace(translations[index], std::regex("\\$\\{count\\}"), std::to_string(count));
+          std::regex_replace(translations[index], std::regex(R"(\$\{count\})"), std::to_string(count));
    }
 }
 
@@ -262,7 +279,9 @@ void Translator::translate_file(std::string const &trace_file_name)
    std::ofstream trimmed_file(trim_file_name);
    add_pre_text();
    for (std::string line; getline(trace_file, line);) {
-      if (is_deleted(line)) continue;
+      if (is_deleted(line)) {
+         continue;
+      }
 
       replace_words(&line);
       write_to_file(line, trimmed_file);

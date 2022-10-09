@@ -22,11 +22,31 @@ void ConfigParser::update_path_variables()
 
 bool ConfigParser::is_disabled(const std::string &category)
 {
-   return std::any_of(cbegin(disabled_categories_), cend(disabled_categories_), [&category](auto const &dCategory) {
-      if (category == dCategory) return true;
-      return false;
-   });
+   return std::any_of(cbegin(disabled_categories_), cend(disabled_categories_),
+                      [&category](auto const &dCategory) { return (category == dCategory); });
 }
+
+duplicates_t ConfigParser::get_duplicate_type(std::string const &dup)
+{
+   if (dup.empty()) {
+      return duplicates_t::allowed;
+   }
+   if (dup == TAG_DUPLICATES_REMOVE) {
+      return duplicates_t::remove;
+   }
+   if (dup == TAG_DUPLICATES_REMOVE_CONTINUOUS) {
+      return duplicates_t::remove_continuous;
+   }
+   if (dup == TAG_DUPLICATES_COUNT) {
+      return duplicates_t::count;
+   }
+   if (dup == TAG_DUPLICATES_COUNT_CONTINUOUS) {
+      return duplicates_t::count_continuous;
+   }
+
+   return duplicates_t::allowed;
+}
+
 void ConfigParser::load_configurations()
 {
    try {

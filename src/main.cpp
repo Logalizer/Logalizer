@@ -9,6 +9,8 @@
 #include "jsonconfigparser.h"
 #include "translator.h"
 
+using std::chrono::high_resolution_clock;
+
 namespace fs = std::filesystem;
 
 void printHelp()
@@ -144,7 +146,8 @@ struct CMD_Args {
 
 CMD_Args parse_cmd_line(const std::vector<std::string_view>& args)
 {
-   std::string log_file, config_file;
+   std::string log_file;
+   std::string config_file;
    for (auto it = cbegin(args), endit = cend(args); it != endit; ++it) {
       if ((*it == "-f" || *it == "--file") && next(it) != endit) {
          log_file = *(next(it));
@@ -190,7 +193,9 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view>& args)
 
 void backup_if_not_exists(const std::string& original, const std::string& backup)
 {
-   if (original.empty() || backup.empty()) return;
+   if (original.empty() || backup.empty()) {
+      return;
+   }
 
    try {
       fs::create_directories(fs::path(backup).remove_filename());
@@ -203,7 +208,7 @@ void backup_if_not_exists(const std::string& original, const std::string& backup
    }
 }
 
-path_vars get_path_vars(std::string log_file)
+path_vars get_path_vars(const std::string& log_file)
 {
    fs::path log_file_path = log_file;
    path_vars path_details;
@@ -213,8 +218,8 @@ path_vars get_path_vars(std::string log_file)
    return path_details;
 }
 
-static std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
-static std::chrono::time_point<std::chrono::high_resolution_clock> end_time;
+static std::chrono::time_point<high_resolution_clock> start_time;
+static std::chrono::time_point<high_resolution_clock> end_time;
 
 void start_benchmark()
 {
@@ -249,13 +254,13 @@ int main(int argc, char** argv)
 
    backup_if_not_exists(cmd_args.log_file, config.get_backup_file());
 
-   Translator tr(config);
+   Translator translator(config);
    start_benchmark();
-   tr.translate_file(cmd_args.log_file);
+   translator.translate_file(cmd_args.log_file);
    end_benchmark("Translation file generated");
 
    start_benchmark();
-   tr.execute_commands();
+   translator.execute_commands();
    end_benchmark("Executed");
    return 0;
 }

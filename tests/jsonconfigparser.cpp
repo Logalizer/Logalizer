@@ -203,7 +203,7 @@ TEST_CASE("translation_file unavailable")
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_translation_file());
-   CHECK(parser.get_translation_file() == "");
+   CHECK(parser.get_translation_file().empty());
 }
 
 TEST_CASE("backup_file available")
@@ -224,7 +224,7 @@ TEST_CASE("backup_file unavailable")
    auto j = R"( { })"_json;
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_backup_file());
-   CHECK(parser.get_backup_file() == "");
+   CHECK(parser.get_backup_file().empty());
 }
 
 TEST_CASE("auto_new_line available")
@@ -403,7 +403,7 @@ TEST_CASE("translations_csv without patterns")
    JsonConfigParser parser(j);
    parser.load_translations();
    const auto& trs = parser.get_translations();
-   CHECK(trs.size() == 0);
+   CHECK(trs.empty());
 }
 
 TEST_CASE("translations_csv without variables")
@@ -430,7 +430,7 @@ TEST_CASE("translations_csv without variables")
    CHECK(tr.patterns == std::vector<std::string>({"pattern1"}));
    CHECK(tr.print == "print this message");
    auto variables = tr.variables;
-   CHECK(tr.variables.size() == 0);
+   CHECK(tr.variables.empty());
    CHECK(tr.duplicates == duplicates_t::allowed);
 }
 
@@ -459,7 +459,7 @@ TEST_CASE("translations_csv disabled entry")
    JsonConfigParser parser(j);
    parser.load_translations();
    const auto& trs = parser.get_translations();
-   CHECK(trs.size() == 0);
+   CHECK(trs.empty());
 }
 
 TEST_CASE("translations_csv both translations and translations_csv")
@@ -567,7 +567,7 @@ TEST_CASE("translations group not mandatory")
    const auto& trs = parser.get_translations();
    CHECK(trs.size() == 1);
    const auto& tr = trs.front();
-   CHECK(tr.category == "");
+   CHECK(tr.category.empty());
 }
 
 TEST_CASE("translations patterns is mandatory")
@@ -584,7 +584,7 @@ TEST_CASE("translations patterns is mandatory")
    JsonConfigParser parser(j);
    parser.load_translations();
    const auto& trs = parser.get_translations();
-   CHECK(trs.size() == 0);
+   CHECK(trs.empty());
 }
 
 TEST_CASE("translations print is mandatory")
@@ -603,7 +603,7 @@ TEST_CASE("translations print is mandatory")
    JsonConfigParser parser(j);
    parser.load_translations();
    const auto& trs = parser.get_translations();
-   CHECK(trs.size() == 0);
+   CHECK(trs.empty());
 }
 
 TEST_CASE("translations indivudually disabled")
