@@ -10,6 +10,7 @@
 namespace fs = std::filesystem;
 using namespace Logalizer::Config;
 
+#if 0
 std::string Translator::fetch_values_regex(std::string const &line, std::vector<variable> const &variables)
 {
    std::string value;
@@ -69,6 +70,7 @@ std::string Translator::fetch_values_braced(std::string const &line, std::vector
    value += ")";
    return value;
 }
+#endif
 
 std::string Translator::capture_values(variable const &var, std::string const &content)
 {
