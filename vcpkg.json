@@ -1,0 +1,8 @@
+{
+  "name": "logalizer",
+  "version-string": "4.0",
+  "dependencies": [
+    "nlohmann-json",
+    "fast-cpp-csv-parser"
+  ]
+}
