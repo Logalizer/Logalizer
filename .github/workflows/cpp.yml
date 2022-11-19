@@ -32,7 +32,8 @@ jobs:
             cxx: "cl",
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
             archiver: "7z a",
-            generators: "Visual Studio 17 2022"
+            generators: "Visual Studio 17 2022",
+            vcpkg_triplet: x64-windows-release
           }
         - {
             name: "Ubuntu_Latest_GCC",
@@ -42,7 +43,8 @@ jobs:
             cc: "gcc",
             cxx: "g++",
             archiver: "7z a",
-            generators: "Ninja"
+            generators: "Ninja",
+            vcpkg_triplet: x64-linux-release
           }
         - {
             name: "Ubuntu_GCC_11",
@@ -52,7 +54,8 @@ jobs:
             cc: "gcc",
             cxx: "g++",
             archiver: "7z a",
-            generators: "Ninja"
+            generators: "Ninja",
+            vcpkg_triplet: x64-linux-release
           }
         - {
             name: "macOS Latest Clang",
@@ -62,7 +65,8 @@ jobs:
             cc: "clang",
             cxx: "clang++",
             archiver: "7za a",
-            generators: "Ninja"
+            generators: "Ninja",
+            vcpkg_triplet: x64-osx-release
           }
 
     steps:
@@ -77,6 +81,12 @@ jobs:
           echo github.event.action: ${{ github.event.action }}
           echo github.event_name: ${{ github.event_name }}
 
+      - name: vcpkg build
+        uses: johnwason/vcpkg-action@v3
+        with:
+          pkgs: nlohmann-json fast-cpp-csv-parser
+          triplet: ${{ matrix.config.vcpkg_triplet }}
+          cache-key: ${{ matrix.config.os }}
 
       - name: Install dependencies on windows
         if: startsWith(matrix.config.os, 'windows')
@@ -154,7 +164,9 @@ jobs:
             -B . \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -G "${{ matrix.config.generators }}" \
-            -DCMAKE_INSTALL_PREFIX:PATH=instdir
+            -DCMAKE_INSTALL_PREFIX:PATH=instdir \
+            -DCMAKE_TOOLCHAIN_FILE='${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake' \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }}
 
 
       - name: Build

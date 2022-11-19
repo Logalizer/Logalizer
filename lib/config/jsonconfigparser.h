@@ -1,7 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include "configparser.h"
-#include "external/json/single_include/nlohmann/json.hpp"
 
 namespace Logalizer::Config {
 /**

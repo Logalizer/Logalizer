@@ -5,7 +5,7 @@
 #include <sstream>
 #include "config_types.h"
 #include "configparser.h"
-#include "external/csv/csv.h"
+#include "csv.h"
 
 namespace Logalizer::Config {
 

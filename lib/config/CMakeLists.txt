@@ -20,16 +20,16 @@ add_library(${PROJECT_NAME} STATIC
 
 add_library(Logalizer::config ALIAS ${PROJECT_NAME})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
-# target_compile_options(config PRIVATE -std=c++17 -O3)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED) # fast-cpp-csv-parser needs this 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 
-# -std=c++17 is used as cxx_std_17 is not working with mingw
-# target_compile_features( config PRIVATE cxx_std_17)
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} INTERFACE nlohmann_json::nlohmann_json)
 
-# find_package(nlohmann_json) target_link_libraries (config PUBLIC nlohmann_json
-# yaml-cpp) target_link_libraries (config PRIVATE nlohmann_json)
+find_path(FAST_CPP_CSV_PARSER_INCLUDE_DIRS "csv.h")
+target_include_directories(${PROJECT_NAME} PRIVATE ${FAST_CPP_CSV_PARSER_INCLUDE_DIRS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
+# target_compile_options(config PRIVATE -std=c++17 -O3)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
