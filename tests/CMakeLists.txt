@@ -13,7 +13,7 @@ find_package(Catch2 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Catch2::Catch2WithMain)
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
 # Test Coverage
 option(BUILD_COVERAGE "Generate lcov coverage report" OFF)

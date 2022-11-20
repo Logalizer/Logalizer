@@ -104,7 +104,7 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 # "${PROJECT_SOURCE_DIR}/lib")
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     target_link_options(${PROJECT_NAME}
