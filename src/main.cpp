@@ -7,6 +7,7 @@
 #include <string_view>
 #include "LogalizerConfig.h"
 #include "jsonconfigparser.h"
+#include "spdlog/spdlog.h"
 #include "translator.h"
 
 using std::chrono::high_resolution_clock;

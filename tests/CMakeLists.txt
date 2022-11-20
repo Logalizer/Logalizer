@@ -2,7 +2,8 @@ project(Logalizer_test VERSION 1.0 LANGUAGES CXX)
 
 add_executable(${PROJECT_NAME}
     jsonconfigparser.cpp
-    translator.cpp ../src/translator.cpp)
+    translator.cpp ../src/translator.cpp
+    runlistener.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Logalizer::config)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
@@ -10,6 +11,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE ../src)
 
 find_package(Catch2 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Catch2::Catch2WithMain)
+
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 
 # Test Coverage
 option(BUILD_COVERAGE "Generate lcov coverage report" OFF)

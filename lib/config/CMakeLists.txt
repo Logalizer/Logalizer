@@ -30,6 +30,9 @@ target_link_libraries(${PROJECT_NAME} INTERFACE nlohmann_json::nlohmann_json)
 find_path(FAST_CPP_CSV_PARSER_INCLUDE_DIRS "csv.h")
 target_include_directories(${PROJECT_NAME} PRIVATE ${FAST_CPP_CSV_PARSER_INCLUDE_DIRS})
 
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
 # target_compile_options(config PRIVATE -std=c++17 -O3)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)

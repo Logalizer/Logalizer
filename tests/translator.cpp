@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 #include "configparser_mock.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace fs = std::filesystem;
 using namespace Logalizer::Config;
@@ -13,10 +15,10 @@ using namespace unit_test;
 TEST_CASE("is_blacklisted")
 {
    ConfigParserMock config;
-   std::vector<std::string> blacklist = {"b1", "b2"};
+   std::vector<std::string> blacklist = { "b1", "b2" };
    config.set_blacklists(blacklist);
 
-   TranslatorTesterProxy tr(Translator{config});
+   TranslatorTesterProxy tr(Translator{ config });
    std::string line;
 
    line = "this is a text";
@@ -32,13 +34,13 @@ TEST_CASE("is_blacklisted")
 TEST_CASE("is_deleted")
 {
    ConfigParserMock config;
-   std::vector<std::string> deleted = {"d1", "d2"};
-   std::vector<std::regex> deleted_regex = {std::regex(
-       " _r.*x_ ", std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize)};
+   std::vector<std::string> deleted = { "d1", "d2" };
+   std::vector<std::regex> deleted_regex = { std::regex(
+       " _r.*x_ ", std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize) };
    config.set_delete_lines(deleted);
    config.set_delete_lines_regex(deleted_regex);
 
-   TranslatorTesterProxy tr(Translator{config});
+   TranslatorTesterProxy tr(Translator{ config });
    std::string line;
 
    line = "this is a text for _regex_ testing";
@@ -57,18 +59,20 @@ TEST_CASE("is_deleted")
 TEST_CASE("replace")
 {
    ConfigParserMock config;
-   std::vector<replacement> replacements = {{"s1", "r1"}, {"s2", "r2"}};
+   std::vector<replacement> replacements = { {"s1", "r1"}, {"s2", "r2"} };
    config.set_replace_words(replacements);
 
-   TranslatorTesterProxy tr(Translator{config});
+   TranslatorTesterProxy tr(Translator{ config });
    std::string line;
    line = "Text with s1 S1 s2 S2";
    std::string expected = "Text with r1 S1 r2 S2";
    tr.replace(&line);
+
+   spdlog::debug("Testing replace");
    CHECK(line == expected);
 }
 
-/*
+
 TEST_CASE("translate basic patterns and print with manual variable capture")
 {
    std::string tr_file = (fs::temp_directory_path() / "tr.txt").string();
@@ -84,16 +88,18 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
 
    SECTION("Single pattern and print")
    {
+      spdlog::set_level(spdlog::level::debug);
       file << "[INFO]: TemperatureSensor: temperature = 45C";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor"};
+      tr.patterns = { "TemperatureSensor" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
       getline(read_file, read_line);
       CHECK(read_line == "TemperatureChanged");
+      spdlog::set_level(spdlog::level::warn);
    }
 
    SECTION("Multiple patterns and print")
@@ -101,7 +107,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45C";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -115,9 +121,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45C";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"= ", "C"}};
+      tr.variables = { {"= ", "C"} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -130,9 +136,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45Celcius";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"= ", ""}};
+      tr.variables = { {"= ", ""} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -145,9 +151,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45Celcius";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"= ", "Farenheit"}};
+      tr.variables = { {"= ", "Farenheit"} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -160,9 +166,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45C";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature is ${1} degrees";
-      tr.variables = {{"= ", "C"}};
+      tr.variables = { {"= ", "C"} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -175,9 +181,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45C, state = HighTemp;";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"= ", "C"}, {"state = ", ";"}};
+      tr.variables = { {"= ", "C"}, {"state = ", ";"} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -190,9 +196,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45C, state = HighTemp;";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"state = ", ";"}, {"= ", "C"}};
+      tr.variables = { {"state = ", ";"}, {"= ", "C"} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -205,9 +211,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 45C, state = HighTemp;";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature(${2} - ${1})";
-      tr.variables = {{"state = ", ";"}, {"= ", "C"}};
+      tr.variables = { {"state = ", ";"}, {"= ", "C"} };
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
@@ -221,7 +227,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -240,7 +246,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged";
       tr.duplicates = duplicates_t::allowed;
       translations.push_back(tr);
@@ -260,7 +266,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged";
       tr.duplicates = duplicates_t::remove;
       translations.push_back(tr);
@@ -279,7 +285,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged";
       tr.duplicates = duplicates_t::remove_continuous;
       translations.push_back(tr);
@@ -298,9 +304,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"= ", "C"}};
+      tr.variables = { {"= ", "C"} };
       tr.duplicates = duplicates_t::remove_continuous;
       translations.push_back(tr);
       config.set_translations(translations);
@@ -322,9 +328,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 46C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "Temperature";
-      tr.variables = {{"= ", "C"}};
+      tr.variables = { {"= ", "C"} };
       tr.duplicates = duplicates_t::remove_continuous;
       translations.push_back(tr);
       config.set_translations(translations);
@@ -345,7 +351,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged ${count} times";
       tr.duplicates = duplicates_t::count;
       translations.push_back(tr);
@@ -365,9 +371,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 49C\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.patterns = { "TemperatureSensor", "temperature" };
       tr.print = "TemperatureChanged to ${1} ${count} times";
-      tr.variables = {{"= ", "C"}};
+      tr.variables = { {"= ", "C"} };
       tr.duplicates = duplicates_t::count;
       translations.push_back(tr);
       config.set_translations(translations);
@@ -388,8 +394,8 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: PressureSensor: pressure = 14psi\n";
       file.close();
       translation tr;
-      config.set_blacklists({"Temperature"});
-      tr.patterns = {"Sensor"};
+      config.set_blacklists({ "Temperature" });
+      tr.patterns = { "Sensor" };
       tr.print = "Sensor values changed";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -408,10 +414,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: PressureSensor: pressure = 14psi\n";
       file.close();
       translation tr;
-      tr.patterns = {"TemperatureSensor"};
+      tr.patterns = { "TemperatureSensor" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
-      tr.patterns = {"PressureSensor"};
+      tr.patterns = { "PressureSensor" };
       tr.print = "PressureChanged";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -434,14 +440,14 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       config.set_auto_new_line_(false);
       translation tr;
       tr.category = "TemperatureSensing";
-      tr.patterns = {"TemperatureSensor"};
+      tr.patterns = { "TemperatureSensor" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
       tr.category = "PressureSensing";
-      tr.patterns = {"PressureSensor"};
+      tr.patterns = { "PressureSensor" };
       tr.print = "PressureChanged";
       translations.push_back(tr);
-      tr.patterns = {"HumiditySensor"};
+      tr.patterns = { "HumiditySensor" };
       tr.print = "\nHumidityChanged";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -458,10 +464,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
    {
       file << "[INFO]: TemperatureSensor: temperature = 45C\n";
       file.close();
-      config.set_wrap_text_pre({"pre1", "pre2"});
+      config.set_wrap_text_pre({ "pre1", "pre2" });
       translation tr;
       tr.category = "TemperatureSensing";
-      tr.patterns = {"TemperatureSensor"};
+      tr.patterns = { "TemperatureSensor" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -479,10 +485,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
    {
       file << "[INFO]: TemperatureSensor: temperature = 45C\n";
       file.close();
-      config.set_wrap_text_post({"post1", "post2"});
+      config.set_wrap_text_post({ "post1", "post2" });
       translation tr;
       tr.category = "TemperatureSensing";
-      tr.patterns = {"TemperatureSensor"};
+      tr.patterns = { "TemperatureSensor" };
       tr.print = "TemperatureChanged";
       translations.push_back(tr);
       config.set_translations(translations);
@@ -505,11 +511,11 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: HumiditySensor: humidity = 20%\n";
       file.close();
       translation tr;
-      tr.patterns = {"Sensor"};
+      tr.patterns = { "Sensor" };
       tr.print = "Sensor values changed";
       translations.push_back(tr);
-      config.set_delete_lines({"Temperature"});
-      config.set_delete_lines_regex({std::regex("Pres.*: ")});
+      config.set_delete_lines({ "Temperature" });
+      config.set_delete_lines_regex({ std::regex("Pres.*: ") });
       config.set_translations(translations);
       tor.translate_file(in_file);
       std::ifstream in_file_read(in_file);
@@ -532,11 +538,11 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       file << "[INFO]: TemperatureSensor: temperature = 59C state = 4\n";
       file.close();
       translation tr;
-      tr.patterns = {"Sensor"};
+      tr.patterns = { "Sensor" };
       tr.print = "Temperature";
-      tr.variables = {{"state = ", ""}};
+      tr.variables = { {"state = ", ""} };
       translations.push_back(tr);
-      config.set_replace_words({{"state = 3", "state = High_Temp"}, {"state = 4", "state = Very_High_Temp"}});
+      config.set_replace_words({ {"state = 3", "state = High_Temp"}, {"state = 4", "state = Very_High_Temp"} });
       config.set_translations(translations);
       tor.translate_file(in_file);
       std::ifstream in_file_read(in_file);
@@ -554,4 +560,4 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       CHECK(lines.at(0) == "Temperature(High_Temp)");
       CHECK(lines.at(1) == "Temperature(Very_High_Temp)");
    }
-}*/
+}
