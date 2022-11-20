@@ -82,13 +82,11 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
    config.set_translation_file(tr_file);
    std::vector<translation> translations;
    Translator tor(config);
-   std::ifstream read_file(tr_file);
    std::string read_line;
    std::vector<std::string> lines;
 
    SECTION("Single pattern and print")
    {
-      spdlog::set_level(spdlog::level::debug);
       file << "[INFO]: TemperatureSensor: temperature = 45C";
       file.close();
       translation tr;
@@ -97,9 +95,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "TemperatureChanged");
-      spdlog::set_level(spdlog::level::warn);
    }
 
    SECTION("Multiple patterns and print")
@@ -112,6 +110,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "TemperatureChanged");
    }
@@ -127,6 +126,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature(45)");
    }
@@ -142,6 +142,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature(45Celcius)");
    }
@@ -157,6 +158,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature(45Celcius)");
    }
@@ -172,6 +174,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature is 45 degrees");
    }
@@ -187,6 +190,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature(45, HighTemp)");
    }
@@ -202,6 +206,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature(HighTemp, 45)");
    }
@@ -217,6 +222,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       getline(read_file, read_line);
       CHECK(read_line == "Temperature(45 - HighTemp)");
    }
@@ -232,6 +238,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -252,6 +259,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -272,6 +280,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -291,6 +300,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -311,6 +321,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -335,6 +346,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -357,6 +369,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -378,6 +391,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -400,6 +414,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -422,6 +437,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -452,6 +468,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -472,6 +489,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -493,6 +511,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       translations.push_back(tr);
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       for (std::string read_line; getline(read_file, read_line);) {
          lines.push_back(read_line);
       }
@@ -518,6 +537,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       config.set_delete_lines_regex({ std::regex("Pres.*: ") });
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       std::ifstream in_file_read(in_file);
       for (std::string read_line; getline(in_file_read, read_line);) {
          lines.push_back(read_line);
@@ -545,6 +565,7 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       config.set_replace_words({ {"state = 3", "state = High_Temp"}, {"state = 4", "state = Very_High_Temp"} });
       config.set_translations(translations);
       tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
       std::ifstream in_file_read(in_file);
       for (std::string read_line; getline(in_file_read, read_line);) {
          lines.push_back(read_line);

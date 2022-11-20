@@ -91,3 +91,5 @@ compile_commands.json
 # Test Artifacts
 #---------------
 config_translations.csv
+
+vcpkg_installed
