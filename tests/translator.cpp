@@ -68,6 +68,7 @@ TEST_CASE("replace")
    CHECK(line == expected);
 }
 
+/*
 TEST_CASE("translate basic patterns and print with manual variable capture")
 {
    std::string tr_file = (fs::temp_directory_path() / "tr.txt").string();
@@ -553,4 +554,4 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       CHECK(lines.at(0) == "Temperature(High_Temp)");
       CHECK(lines.at(1) == "Temperature(Very_High_Temp)");
    }
-}
+}*/
