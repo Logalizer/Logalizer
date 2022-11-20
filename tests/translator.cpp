@@ -1,9 +1,9 @@
 #include "translator.h"
 #include <algorithm>
+#include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include "catch.hpp"
 #include "configparser_mock.h"
 
 namespace fs = std::filesystem;

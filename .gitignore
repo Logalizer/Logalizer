@@ -75,6 +75,7 @@ Thumbs.db
 # -----
 CMakeLists.txt.user
 build
+builds
 
 # External Libs
 #--------------

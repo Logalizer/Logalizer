@@ -1,5 +1,5 @@
 #include "path_variable_utils.h"
-#include "catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 #include "sys/stat.h"
 #include "sys/types.h"
 

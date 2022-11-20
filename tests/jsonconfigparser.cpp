@@ -1,6 +1,6 @@
 #include "jsonconfigparser.h"
+#include <catch2/catch_test_macros.hpp>
 #include <fstream>
-#include "catch.hpp"
 #include "config_types.h"
 
 using namespace Logalizer::Config;
