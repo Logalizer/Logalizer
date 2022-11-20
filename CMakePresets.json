@@ -10,7 +10,8 @@
       "name": "ninja-multi-vcpkg",
       "displayName": "Ninja Multi-Config",
       "description": "Configure with vcpkg toolchain and generate Ninja project files for all configurations",
-      "binaryDir": "${sourceDir}/builds/${presetName}",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/build/${presetName}",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
@@ -33,19 +34,25 @@
       "configurePreset": "ninja-multi-vcpkg",
       "displayName": "Build ninja-multi-vcpkg-release",
       "description": "Build ninja-multi-vcpkg Release configuration",
-      "configuration": "RelWithDebInfo"
+      "configuration": "Release"
     }
   ],
   "testPresets": [
     {
       "name": "ninja-multi-vcpkg-debug",
       "configurePreset": "ninja-multi-vcpkg",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
     },
     {
       "name": "ninja-multi-vcpkg-release",
       "configurePreset": "ninja-multi-vcpkg",
-      "configuration": "RelWithDebInfo"
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }

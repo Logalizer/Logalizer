@@ -12,10 +12,13 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
+            archiver: "7z a"
           - os: ubuntu-latest
             triplet: x64-linux
+            archiver: "7z a"
           - os: macos-latest
             triplet: x64-osx
+            archiver: "7za a"
     env:
       # Indicates the location of the vcpkg as a Git submodule of the project repository.
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -58,11 +61,43 @@ jobs:
       - name: Install dependencies and generate project files
         run: |
           cmake --preset ninja-multi-vcpkg
-      # Build the whole project with Ninja (which is spawn by CMake). Debug configuration.
-      - name: Build (Debug)
+      
+      # Build the whole project with Ninja (which is spawn by CMake). Release configuration.
+      - name: Build (Release)
         run: |
-          cmake --build --preset ninja-multi-vcpkg-debug
+          cmake --build --preset ninja-multi-vcpkg-release
+      
       # Test the whole project with CTest.
-      - name: Test (Debug)
+      - name: Test (Release)
         run: |
-          ctest --preset ninja-multi-vcpkg-debug --verbose
+          ctest --preset ninja-multi-vcpkg-release --verbose
+
+      # Install binaries
+      - name: Install Strip
+        shell: bash
+        run: cmake --install build/ninja-multi-vcpkg --strip
+      
+      # Pack install directory
+      - name: Pack
+        shell: bash
+        working-directory: build/ninja-multi-vcpkg/bin
+        run: |
+          ls -laR
+          ${{ matrix.archiver }} ../logalizer_${{ matrix.os }}.7z .
+
+      - name: Upload
+        uses: actions/upload-artifact@v1
+        with:
+          path: build/ninja-multi-vcpkg/logalizer_${{ matrix.os }}.7z
+          name: logalizer_${{ matrix.os }}.7z
+
+      - name: Upload release asset
+        if: github.event_name == 'release' && (github.event.action == 'published' || github.event.action == 'created')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./build/ninja-multi-vcpkg/logalizer_${{ matrix.os }}.7z
+          asset_name: logalizer_${{ matrix.os }}.7z
+          asset_content_type: application/zip
