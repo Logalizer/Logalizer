@@ -35,4 +35,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
 # target_compile_options(config PRIVATE -std=c++17 -O3)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)

@@ -16,12 +16,8 @@ using json = nlohmann::json;
  * ConfigParser will decide which exceptions to ignore
  */
 
-namespace details {
-
-}  // namespace details
-
 template <class T>
-T Logalizer::Config::JsonConfigParser::get_value_or(json const &config, std::string const &name, T value)
+T Logalizer::Config::JsonConfigParser::get_value_or(json const& config, std::string const& name, T value)
 {
    const auto found = config.find(name);
    if (found != config.end()) {
@@ -29,25 +25,24 @@ T Logalizer::Config::JsonConfigParser::get_value_or(json const &config, std::str
    }
    return value;
 }
-
-std::vector<variable> JsonConfigParser::get_variables(json const &config)
+std::vector<variable> JsonConfigParser::get_variables(json const& config)
 {
    std::vector<variable> variables;
-   const auto &jvariables = get_value_or(config, "variables", json{});
-   for (const auto &item : jvariables.items()) {
-      variables.emplace_back(variable{item.value().at("startswith"), item.value().at("endswith")});
+   const auto& jvariables = get_value_or(config, TAG_VARIABLES, json{});
+   for (const auto& item : jvariables.items()) {
+      variables.emplace_back(variable{ item.value().at(TAG_STARTS_WITH), item.value().at(TAG_ENDS_WITH) });
    }
    return variables;
 }
 
-std::vector<translation> JsonConfigParser::load_translations(json const &config, std::string const &name)
+std::vector<translation> JsonConfigParser::load_translations(json const& config, std::string const& name)
 {
    std::vector<translation> translations;
 
-   for (const auto &item : config.at(name).items()) {
+   for (const auto& item : config.at(name).items()) {
       // item {tranlation_element1, tranlation_element2, ...}
 
-      const json &jtranslation = item.value();
+      const json& jtranslation = item.value();
       const std::string category = get_value_or(jtranslation, TAG_CATEGORY, std::string{});
       bool enable = get_value_or(jtranslation, TAG_ENABLE, true);
 
@@ -86,7 +81,7 @@ std::vector<translation> JsonConfigParser::load_translations(json const &config,
    return translations;
 }
 
-std::vector<translation> JsonConfigParser::load_translations_csv(std::string const &translations_csv_file)
+std::vector<translation> JsonConfigParser::load_translations_csv(std::string const& translations_csv_file)
 {
    std::vector<translation> translations;
    std::filesystem::path p(config_file_);
@@ -95,8 +90,8 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
    const short no_of_columns = 13;
    io::CSVReader<no_of_columns, io::trim_chars<' '>, io::double_quote_escape<',', '\"'>> in(csv_file);
    in.read_header(io::ignore_extra_column, "enable", "group", "print", "duplicates", "pattern1", "pattern2", "pattern3",
-                  "variable1_starts_with", "variable1_ends_with", "variable2_starts_with", "variable2_ends_with",
-                  "variable3_starts_with", "variable3_ends_with");
+      "variable1_starts_with", "variable1_ends_with", "variable2_starts_with", "variable2_ends_with",
+      "variable3_starts_with", "variable3_ends_with");
    std::string enable, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e;
    while (in.read_row(enable, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e)) {
       if (enable == "No" || enable == "no" || enable == "False" || enable == "false" || enable == "0") {
@@ -123,13 +118,13 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
          tr.patterns.push_back(pattern3);
       }
       if (!v1s.empty()) {
-         tr.variables.push_back(variable{v1s, v1e});
+         tr.variables.push_back(variable{ v1s, v1e });
       }
       if (!v2s.empty()) {
-         tr.variables.push_back(variable{v2s, v2e});
+         tr.variables.push_back(variable{ v2s, v2e });
       }
       if (!v3s.empty()) {
-         tr.variables.push_back(variable{v3s, v3e});
+         tr.variables.push_back(variable{ v3s, v3e });
       }
       translations.push_back(tr);
    }
@@ -174,7 +169,7 @@ void JsonConfigParser::load_translations()
       try {
          config_.at(TAG_TRANSLATIONS);
          std::cerr << "[warn] " << TAG_TRANSLATIONS << " is not read in the presence of " << TAG_TRANSLATIONS_CSV
-                   << "\n";
+            << "\n";
       }
       catch (...) {
       }
@@ -214,10 +209,10 @@ void JsonConfigParser::load_delete_lines()
 
    std::vector<std::regex> delete_lines_regex;
    std::vector<std::string> delete_lines;
-   for (auto const &entry : deletors) {
+   for (auto const& entry : deletors) {
       if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
          delete_lines_regex.emplace_back(
-             entry, std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize);
+            entry, std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize);
       }
       else {
          delete_lines.emplace_back(entry);
@@ -228,7 +223,7 @@ void JsonConfigParser::load_delete_lines()
 
    if (!delete_lines_regex.empty()) {
       std::cerr << "[warn] Use of regex in " << TAG_DELETE_LINES << " is a lot slower. Use normal search instead,\n";
-      for (auto const &entry : deletors) {
+      for (auto const& entry : deletors) {
          if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
             std::cout << "  " << entry << '\n';
          }
@@ -240,7 +235,7 @@ void JsonConfigParser::load_replace_words()
 {
    const json j_tr = config_.at(TAG_REPLACE_WORDS);
    std::vector<replacement> replace_words;
-   for (const auto &[key, value] : j_tr.items()) {
+   for (const auto& [key, value] : j_tr.items()) {
       replace_words.emplace_back(key, value);
    }
    set_replace_words(replace_words);

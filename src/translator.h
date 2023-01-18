@@ -20,8 +20,9 @@ class Translator {
    std::string fetch_values_braced(std::string const& line, std::vector<Logalizer::Config::variable> const& variables);
    std::string capture_values(Logalizer::Config::variable const& var, std::string const& content);
    std::vector<std::string> variable_values(std::string const& line,
-                                            std::vector<Logalizer::Config::variable> const& variables);
+      std::vector<Logalizer::Config::variable> const& variables);
    std::string pack_parameters(std::vector<std::string> const& v);
+   std::string fill_values(std::string const& line, Logalizer::Config::translation const& tr);
    std::string fill_values_formatted(std::vector<std::string> const& values, std::string const& line_to_fill);
    std::string update_variables(std::vector<std::string> const& values, std::string const& line_to_fill);
    [[nodiscard]] bool is_blacklisted(std::string const& line);
@@ -39,7 +40,7 @@ class Translator {
    std::vector<std::string> translations;
    std::unordered_map<size_t, size_t> trans_count;
 
-  public:
+public:
    /**
     * @brief Construct a new Translator object
     *

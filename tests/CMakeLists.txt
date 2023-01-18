@@ -6,7 +6,7 @@ add_executable(${PROJECT_NAME}
     runlistener.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Logalizer::config)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROJECT_NAME} PRIVATE ../src)
 
 find_package(Catch2 CONFIG REQUIRED)

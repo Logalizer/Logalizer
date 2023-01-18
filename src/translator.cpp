@@ -7,9 +7,12 @@
 #include <regex>
 #include "config_types.h"
 #include "spdlog/spdlog.h"
+#include <ranges>
+#include <functional>
 
 namespace fs = std::filesystem;
 using namespace Logalizer::Config;
+namespace rgs = std::ranges;
 
 #if 0
 std::string Translator::fetch_values_regex(std::string const& line, std::vector<variable> const& variables)
@@ -101,7 +104,7 @@ std::vector<std::string> Translator::variable_values(std::string const& line, st
       return {};
    }
 
-   std::transform(cbegin(variables), cend(variables), std::back_inserter(value),
+   rgs::transform(variables, std::back_inserter(value),
       [&line, this](auto const& var) { return capture_values(var, line); });
 
    return value;
@@ -145,15 +148,16 @@ std::string Translator::update_variables(std::vector<std::string> const& values,
 
 [[nodiscard]] bool Translator::is_blacklisted(std::string const& line)
 {
-   std::vector<std::string> const& blacklists = config_.get_blacklists();
-   return std::any_of(cbegin(blacklists), cend(blacklists),
+   return rgs::any_of(config_.get_blacklists(),
       [&line](auto const& bl) { return line.find(bl) != std::string::npos; });
 }
 
 auto Translator::get_matching_translator(std::string const& line)
 {
+   auto matcher = [&line](auto const& tr) { return tr.in(line); };
    const std::vector<translation>& trcfg = config_.get_translations();
-   auto found = std::find_if(cbegin(trcfg), cend(trcfg), [&line](auto const& tr) { return tr.in(line); });
+   auto found = rgs::find_if(trcfg, matcher);
+   // auto found = rgs::find_if(trcfg, std::bind(std::mem_fn(&translation::in), std::placeholders::_1, line));
    if (found != cend(trcfg)) {
       if (!is_blacklisted(line)) {
          return found;
@@ -164,16 +168,14 @@ auto Translator::get_matching_translator(std::string const& line)
 
 [[nodiscard]] bool Translator::is_deleted(std::string const& line) noexcept
 {
-   std::vector<std::string> const& delete_lines = config_.get_delete_lines();
-   std::vector<std::regex> const& delete_lines_regex = config_.get_delete_lines_regex();
-   bool deleted = std::any_of(cbegin(delete_lines), cend(delete_lines),
+   bool deleted = rgs::any_of(config_.get_delete_lines(),
       [&line](auto const& dl) { return line.find(dl) != std::string::npos; });
 
    if (deleted) {
       return true;
    }
 
-   deleted = std::any_of(cbegin(delete_lines_regex), cend(delete_lines_regex),
+   deleted = rgs::any_of(config_.get_delete_lines_regex(),
       [&line](auto const& dl) { return regex_search(line, dl); });
 
    return deleted;
@@ -181,10 +183,10 @@ auto Translator::get_matching_translator(std::string const& line)
 
 void Translator::replace_words(std::string* line)
 {
-   std::vector<replacement> const& replacements = config_.get_replace_words();
-   std::for_each(cbegin(replacements), cend(replacements), [&](auto const& entry) {
+   auto regex_replace = [&](auto const& entry) {
       *line = std::regex_replace(*line, std::regex(entry.search), entry.replace);
-      });
+   };
+   rgs::for_each(config_.get_replace_words(), regex_replace);
 }
 
 void Translator::add_translation(std::string&& translation, duplicates_t duplicates)
@@ -241,14 +243,12 @@ void Translator::update_count()
 
 void Translator::add_pre_text()
 {
-   const auto& pre_text = config_.get_wrap_text_pre();
-   std::copy(pre_text.cbegin(), pre_text.cend(), std::back_inserter(translations));
+   rgs::copy(config_.get_wrap_text_pre(), std::back_inserter(translations));
 }
 
 void Translator::add_post_text()
 {
-   const auto& post_text = config_.get_wrap_text_post();
-   std::copy(post_text.cbegin(), post_text.cend(), std::back_inserter(translations));
+   rgs::copy(config_.get_wrap_text_post(), std::back_inserter(translations));
 }
 
 void Translator::write_translation_file()
@@ -257,10 +257,10 @@ void Translator::write_translation_file()
    fs::create_directories(fs::path(tr_file_name).remove_filename());
    std::ofstream translation_file(tr_file_name);
    if (config_.get_auto_new_line()) {
-      std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file, "\n"));
+      rgs::copy(translations, std::ostream_iterator<std::string>(translation_file, "\n"));
    }
    else {
-      std::copy(translations.cbegin(), translations.cend(), std::ostream_iterator<std::string>(translation_file));
+      rgs::copy(translations, std::ostream_iterator<std::string>(translation_file));
    }
    translation_file.close();
 }
@@ -270,13 +270,31 @@ void Translator::write_to_file(std::string const& line, std::ofstream& trimmed_f
    trimmed_file << line << '\n';
 }
 
+std::string Translator::fill_values(std::string const& line, Logalizer::Config::translation const& tr)
+{
+   std::string updated_print;
+   auto values = variable_values(line, tr.variables);
+   update_variables(values, tr.print);
+   return updated_print;
+   // std::string translation = update_variables(variable_values(line, trcfg->variables), trcfg->print);
+  // std::string translation = line
+   //    | variable_values(trcfg->variables)
+   //    | update_variables(trcfg->print);
+   // flow(
+   //    variable_values(trcfg->variables),
+   //    update_variables(trcfg->print)
+   // )(line);
+}
+
 void Translator::translate(std::string const& line)
 {
    const auto& trcfg = get_matching_translator(line);
-   if (trcfg != cend(config_.get_translations())) {
-      std::string translation = update_variables(variable_values(line, trcfg->variables), trcfg->print);
-      add_translation(std::move(translation), trcfg->duplicates);
+   if (trcfg == cend(config_.get_translations())) {
+      return;
    }
+   const auto& tr = *trcfg;
+   std::string translation = fill_values(line, tr);
+   add_translation(std::move(translation), trcfg->duplicates);
 }
 
 void Translator::translate_file(std::string const& trace_file_name)
@@ -286,11 +304,11 @@ void Translator::translate_file(std::string const& trace_file_name)
    const std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    add_pre_text();
+
    for (std::string line; getline(trace_file, line);) {
       if (is_deleted(line)) {
          continue;
       }
-
       replace_words(&line);
       write_to_file(line, trimmed_file);
       translate(line);
@@ -307,13 +325,14 @@ void Translator::translate_file(std::string const& trace_file_name)
 
 void Translator::execute_commands()
 {
-   for (auto const& command : config_.get_execute_commands()) {
-      std::cout << "Executing...\n";
-      const char* command_str = command.c_str();
-      std::cout << command_str << std::endl;
-      if (const int returnval = system(command_str)) {
+   auto execute = [](auto& command) {
+      std::cout << "Executing...\n" << command << std::endl;
+      if (const int returnval = system(command.c_str())) {
          std::cerr << TAG_EXECUTE << " : " << command << " execution failed with code " << returnval << "\n";
-         break;
+         return false;
       }
-   }
+      return true;
+   };
+
+   rgs::all_of(config_.get_execute_commands(), execute);
 }

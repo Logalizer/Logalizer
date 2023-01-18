@@ -22,6 +22,8 @@ static const std::string TAG_CATEGORY = "group";
 static const std::string TAG_PATTERNS = "patterns";
 static const std::string TAG_PRINT = "print";
 static const std::string TAG_VARIABLES = "variables";
+static const std::string TAG_STARTS_WITH = "startswith";
+static const std::string TAG_ENDS_WITH = "endswith";
 static const std::string TAG_DUPLICATES = "duplicates";
 static const std::string TAG_ENABLE = "enable";
 static const std::string TAG_DUPLICATES_ALLOWED = "allowed";
@@ -40,7 +42,7 @@ static const std::string VAR_FILE_BASE_WITH_EXTENSION = R"(\$\{fileBasename\})";
  *
  */
 class ConfigParser {
-  public:
+public:
    ConfigParser() = default;
    virtual ~ConfigParser() = default;
    ConfigParser(ConfigParser&&) = default;
@@ -113,7 +115,7 @@ class ConfigParser {
       return auto_new_line_;
    }
 
-  protected:
+protected:
    void set_translations(std::vector<translation> translations)
    {
       translations_ = std::move(translations);
@@ -179,7 +181,7 @@ class ConfigParser {
       auto_new_line_ = auto_new_line;
    }
 
-  private:
+private:
    virtual void update_path_variables() final;
    virtual void load_disabled_categories() = 0;
    virtual void load_translations() = 0;
