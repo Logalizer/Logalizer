@@ -2,13 +2,13 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <numeric>
+#include <ranges>
 #include <regex>
 #include "config_types.h"
 #include "spdlog/spdlog.h"
-#include <ranges>
-#include <functional>
 
 namespace fs = std::filesystem;
 using namespace Logalizer::Config;
@@ -92,7 +92,7 @@ std::string Translator::capture_values(variable const& var, std::string const& c
    }
 
    std::string capture(content.cbegin() + static_cast<long>(start_point),
-      content.cbegin() + static_cast<long>(end_point));
+                       content.cbegin() + static_cast<long>(end_point));
 
    return capture;
 }
@@ -105,7 +105,7 @@ std::vector<std::string> Translator::variable_values(std::string const& line, st
    }
 
    rgs::transform(variables, std::back_inserter(value),
-      [&line, this](auto const& var) { return capture_values(var, line); });
+                  [&line, this](auto const& var) { return capture_values(var, line); });
 
    return value;
 }
@@ -148,8 +148,7 @@ std::string Translator::update_variables(std::vector<std::string> const& values,
 
 [[nodiscard]] bool Translator::is_blacklisted(std::string const& line)
 {
-   return rgs::any_of(config_.get_blacklists(),
-      [&line](auto const& bl) { return line.find(bl) != std::string::npos; });
+   return rgs::any_of(config_.get_blacklists(), [&line](auto const& bl) { return line.find(bl) != std::string::npos; });
 }
 
 auto Translator::get_matching_translator(std::string const& line)
@@ -168,15 +167,14 @@ auto Translator::get_matching_translator(std::string const& line)
 
 [[nodiscard]] bool Translator::is_deleted(std::string const& line) noexcept
 {
-   bool deleted = rgs::any_of(config_.get_delete_lines(),
-      [&line](auto const& dl) { return line.find(dl) != std::string::npos; });
+   bool deleted =
+       rgs::any_of(config_.get_delete_lines(), [&line](auto const& dl) { return line.find(dl) != std::string::npos; });
 
    if (deleted) {
       return true;
    }
 
-   deleted = rgs::any_of(config_.get_delete_lines_regex(),
-      [&line](auto const& dl) { return regex_search(line, dl); });
+   deleted = rgs::any_of(config_.get_delete_lines_regex(), [&line](auto const& dl) { return regex_search(line, dl); });
 
    return deleted;
 }
@@ -196,40 +194,40 @@ void Translator::add_translation(std::string&& translation, duplicates_t duplica
    spdlog::debug("Adding translation {}", translation);
 
    switch (duplicates) {
-   case duplicates_t::allowed: {
-      translations.emplace_back(std::move(translation));
-      break;
-   }
-   case duplicates_t::remove: {
-      if (contains(translation) == translations.cend()) {
+      case duplicates_t::allowed: {
          translations.emplace_back(std::move(translation));
+         break;
       }
-      break;
-   }
-   case duplicates_t::remove_continuous: {
-      if (translations.empty() || translation != translations.back()) {
-         translations.emplace_back(std::move(translation));
+      case duplicates_t::remove: {
+         if (contains(translation) == translations.cend()) {
+            translations.emplace_back(std::move(translation));
+         }
+         break;
       }
-      break;
-   }
-   case duplicates_t::count: {
-      auto first = contains(translation);
-      if (translations.empty() || first == translations.cend()) {
-         translations.emplace_back(std::move(translation));
+      case duplicates_t::remove_continuous: {
+         if (translations.empty() || translation != translations.back()) {
+            translations.emplace_back(std::move(translation));
+         }
+         break;
+      }
+      case duplicates_t::count: {
+         auto first = contains(translation);
+         if (translations.empty() || first == translations.cend()) {
+            translations.emplace_back(std::move(translation));
+            trans_count[translations.size() - 1]++;
+         }
+         else {
+            trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
+         }
+         break;
+      }
+      case duplicates_t::count_continuous: {
+         if (translations.empty() || translation != translations.back()) {
+            translations.emplace_back(std::move(translation));
+         }
          trans_count[translations.size() - 1]++;
+         break;
       }
-      else {
-         trans_count[static_cast<size_t>(std::distance(cbegin(translations), first))]++;
-      }
-      break;
-   }
-   case duplicates_t::count_continuous: {
-      if (translations.empty() || translation != translations.back()) {
-         translations.emplace_back(std::move(translation));
-      }
-      trans_count[translations.size() - 1]++;
-      break;
-   }
    }
 }
 
@@ -237,7 +235,7 @@ void Translator::update_count()
 {
    for (auto const& [index, count] : trans_count) {
       translations[index] =
-         std::regex_replace(translations[index], std::regex(R"(\$\{count\})"), std::to_string(count));
+          std::regex_replace(translations[index], std::regex(R"(\$\{count\})"), std::to_string(count));
    }
 }
 
@@ -274,10 +272,10 @@ std::string Translator::fill_values(std::string const& line, Logalizer::Config::
 {
    std::string updated_print;
    auto values = variable_values(line, tr.variables);
-   update_variables(values, tr.print);
+   updated_print = update_variables(values, tr.print);
    return updated_print;
    // std::string translation = update_variables(variable_values(line, trcfg->variables), trcfg->print);
-  // std::string translation = line
+   // std::string translation = line
    //    | variable_values(trcfg->variables)
    //    | update_variables(trcfg->print);
    // flow(

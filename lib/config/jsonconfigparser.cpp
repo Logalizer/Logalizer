@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include "config_types.h"
 #include "configparser.h"
@@ -29,9 +30,9 @@ std::vector<variable> JsonConfigParser::get_variables(json const& config)
 {
    std::vector<variable> variables;
    const auto& jvariables = get_value_or(config, TAG_VARIABLES, json{});
-   for (const auto& item : jvariables.items()) {
-      variables.emplace_back(variable{ item.value().at(TAG_STARTS_WITH), item.value().at(TAG_ENDS_WITH) });
-   }
+   std::ranges::for_each(jvariables.items(), [&variables](const auto& item) {
+      variables.emplace_back(variable{item.value().at(TAG_STARTS_WITH), item.value().at(TAG_ENDS_WITH)});
+   });
    return variables;
 }
 
@@ -90,9 +91,21 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
    const short no_of_columns = 13;
    io::CSVReader<no_of_columns, io::trim_chars<' '>, io::double_quote_escape<',', '\"'>> in(csv_file);
    in.read_header(io::ignore_extra_column, "enable", "group", "print", "duplicates", "pattern1", "pattern2", "pattern3",
-      "variable1_starts_with", "variable1_ends_with", "variable2_starts_with", "variable2_ends_with",
-      "variable3_starts_with", "variable3_ends_with");
-   std::string enable, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e;
+                  "variable1_starts_with", "variable1_ends_with", "variable2_starts_with", "variable2_ends_with",
+                  "variable3_starts_with", "variable3_ends_with");
+   std::string enable;
+   std::string group;
+   std::string print;
+   std::string duplicates;
+   std::string pattern1;
+   std::string pattern2;
+   std::string pattern3;
+   std::string v1s;
+   std::string v1e;
+   std::string v2s;
+   std::string v2e;
+   std::string v3s;
+   std::string v3e;
    while (in.read_row(enable, group, print, duplicates, pattern1, pattern2, pattern3, v1s, v1e, v2s, v2e, v3s, v3e)) {
       if (enable == "No" || enable == "no" || enable == "False" || enable == "false" || enable == "0") {
          continue;
@@ -118,29 +131,28 @@ std::vector<translation> JsonConfigParser::load_translations_csv(std::string con
          tr.patterns.push_back(pattern3);
       }
       if (!v1s.empty()) {
-         tr.variables.push_back(variable{ v1s, v1e });
+         tr.variables.push_back(variable{v1s, v1e});
       }
       if (!v2s.empty()) {
-         tr.variables.push_back(variable{ v2s, v2e });
+         tr.variables.push_back(variable{v2s, v2e});
       }
       if (!v3s.empty()) {
-         tr.variables.push_back(variable{ v3s, v3e });
+         tr.variables.push_back(variable{v3s, v3e});
       }
       translations.push_back(tr);
    }
    return translations;
 }
 
-JsonConfigParser::JsonConfigParser(std::string config_file) : config_file_(std::move(config_file))
+JsonConfigParser::JsonConfigParser(std::string config_file) : config_file_{std::move(config_file)}
 {
    if (config_file_.empty()) {
       config_file_ = "config.json";
    }
 }
 
-JsonConfigParser::JsonConfigParser(nlohmann::json config)
+JsonConfigParser::JsonConfigParser(nlohmann::json config) : config_(std::move(config))
 {
-   config_ = std::move(config);
 }
 
 void JsonConfigParser::read_config_file()
@@ -169,7 +181,7 @@ void JsonConfigParser::load_translations()
       try {
          config_.at(TAG_TRANSLATIONS);
          std::cerr << "[warn] " << TAG_TRANSLATIONS << " is not read in the presence of " << TAG_TRANSLATIONS_CSV
-            << "\n";
+                   << "\n";
       }
       catch (...) {
       }
@@ -212,7 +224,7 @@ void JsonConfigParser::load_delete_lines()
    for (auto const& entry : deletors) {
       if (entry.find_first_of("[\\^$.|?*+") != std::string::npos) {
          delete_lines_regex.emplace_back(
-            entry, std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize);
+             entry, std::regex_constants::grep | std::regex_constants::nosubs | std::regex_constants::optimize);
       }
       else {
          delete_lines.emplace_back(entry);

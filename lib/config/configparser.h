@@ -42,7 +42,7 @@ static const std::string VAR_FILE_BASE_WITH_EXTENSION = R"(\$\{fileBasename\})";
  *
  */
 class ConfigParser {
-public:
+  public:
    ConfigParser() = default;
    virtual ~ConfigParser() = default;
    ConfigParser(ConfigParser&&) = default;
@@ -115,7 +115,7 @@ public:
       return auto_new_line_;
    }
 
-protected:
+  protected:
    void set_translations(std::vector<translation> translations)
    {
       translations_ = std::move(translations);
@@ -181,7 +181,7 @@ protected:
       auto_new_line_ = auto_new_line;
    }
 
-private:
+  private:
    virtual void update_path_variables() final;
    virtual void load_disabled_categories() = 0;
    virtual void load_translations() = 0;

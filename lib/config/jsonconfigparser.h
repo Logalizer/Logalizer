@@ -10,8 +10,8 @@ namespace Logalizer::Config {
  */
 class JsonConfigParser final : public ConfigParser {
   public:
-   JsonConfigParser(std::string config_file = "config.json");
-   JsonConfigParser(nlohmann::json config);
+   explicit JsonConfigParser(std::string config_file = "config.json");
+   explicit JsonConfigParser(nlohmann::json config);
    void load_disabled_categories() override;
    void load_translations() override;
    void load_wrap_text() override;

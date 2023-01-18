@@ -48,14 +48,12 @@ struct translation {
    std::string print;
    std::vector<variable> variables;
    duplicates_t duplicates = duplicates_t::allowed;
+   int padding_variable;
 
    [[nodiscard]] bool in(std::string const& line) const
    {
       auto matches = [&line](auto const& pattern) {
-         if (line.find(pattern) != std::string::npos)
-            return true;
-         else
-            return false;
+         return static_cast<bool>(line.find(pattern) != std::string::npos);
       };
       return std::all_of(cbegin(patterns), cend(patterns), matches);
    }
