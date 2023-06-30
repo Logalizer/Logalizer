@@ -889,3 +889,224 @@ TEST_CASE("translations unavailable")
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_translations());
 }
+
+TEST_CASE("translations one translation and with pairswith")
+{
+   auto j = R"( {
+    "translations": [
+     {
+       "group": "group_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+      "pairswith": [
+        {
+           "printmatch": [
+             "printmatch"
+           ],
+           "pairmatch": [
+             "pairmatch"
+           ],
+           "before": [
+             "before"
+           ],
+           "errorprint": "error print"
+        }
+        ],
+       "duplicates": "allowed"
+     }
+    ]
+  }
+  )"_json;
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   const auto& pairs = parser.get_pairs();
+   CHECK(pairs.size() == 1);
+   CHECK(pairs.at(0).print_match == std::vector<std::string>({"printmatch"}));
+   CHECK(pairs.at(0).pair_match == std::vector<std::string>({"pairmatch"}));
+   CHECK(pairs.at(0).before_match == std::vector<std::string>({"before"}));
+   CHECK(pairs.at(0).error_print == "error print");
+}
+
+TEST_CASE("translations one translation and with many pairswith")
+{
+   auto j = R"( {
+    "translations": [
+     {
+       "group": "group_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+      "pairswith": [
+        {
+           "printmatch": [
+             "printmatch"
+           ],
+           "pairmatch": [
+             "pairmatch"
+           ],
+           "before": [
+             "before"
+           ],
+           "errorprint": "error print"
+        },
+        {
+           "printmatch": [
+             "printmatch1"
+           ],
+           "pairmatch": [
+             "pairmatch1"
+           ],
+           "before": [
+             "before1"
+           ],
+           "errorprint": "error print1"
+        }
+        ],
+       "duplicates": "allowed"
+     }
+    ]
+  }
+  )"_json;
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   const auto& pairs = parser.get_pairs();
+   CHECK(pairs.size() == 2);
+   CHECK(pairs.at(0).print_match == std::vector<std::string>({"printmatch"}));
+   CHECK(pairs.at(0).pair_match == std::vector<std::string>({"pairmatch"}));
+   CHECK(pairs.at(0).before_match == std::vector<std::string>({"before"}));
+   CHECK(pairs.at(0).error_print == "error print");
+
+   CHECK(pairs.at(1).print_match == std::vector<std::string>({"printmatch1"}));
+   CHECK(pairs.at(1).pair_match == std::vector<std::string>({"pairmatch1"}));
+   CHECK(pairs.at(1).before_match == std::vector<std::string>({"before1"}));
+   CHECK(pairs.at(1).error_print == "error print1");
+}
+
+TEST_CASE("translations 2 translations and with one pairswith")
+{
+   auto j = R"( {
+    "translations": [
+     {
+       "group": "group_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+      "pairswith": [
+        {
+           "printmatch": [
+             "printmatch"
+           ],
+           "pairmatch": [
+             "pairmatch"
+           ],
+           "before": [
+             "before"
+           ],
+           "errorprint": "error print"
+        }
+        ],
+       "duplicates": "allowed"
+     },
+
+     {
+       "group": "group_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+      "pairswith": [
+        {
+           "printmatch": [
+             "printmatch1"
+           ],
+           "pairmatch": [
+             "pairmatch1"
+           ],
+           "before": [
+             "before1"
+           ],
+           "errorprint": "error print1"
+        }
+        ],
+       "duplicates": "allowed"
+     }
+    ]
+  }
+  )"_json;
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 2);
+   const auto& tr = trs.front();
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   const auto& pairs = parser.get_pairs();
+   CHECK(pairs.size() == 2);
+   CHECK(pairs.at(0).print_match == std::vector<std::string>({"printmatch"}));
+   CHECK(pairs.at(0).pair_match == std::vector<std::string>({"pairmatch"}));
+   CHECK(pairs.at(0).before_match == std::vector<std::string>({"before"}));
+   CHECK(pairs.at(0).error_print == "error print");
+
+   CHECK(pairs.at(1).print_match == std::vector<std::string>({"printmatch1"}));
+   CHECK(pairs.at(1).pair_match == std::vector<std::string>({"pairmatch1"}));
+   CHECK(pairs.at(1).before_match == std::vector<std::string>({"before1"}));
+   CHECK(pairs.at(1).error_print == "error print1");
+}

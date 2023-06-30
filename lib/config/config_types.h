@@ -37,6 +37,20 @@ enum class duplicates_t {
 };
 
 /**
+ * @brief pairs is used to check if a matching pair is found for a print
+ *
+ * If a print line is found search for the corresponding pair before a delimiter
+ * If not found print error_print string
+ */
+
+struct pair {
+   std::vector<std::string> print_match;   /// Defines how to find a print line in translated file
+   std::vector<std::string> pair_match;    /// Defines how to find a matching pair line in translated file
+   std::vector<std::string> before_match;  /// Defines how to find a terminator before which the pair has to be found
+   std::string error_print;  /// If a matching pair is not found print this error_print before the terminator
+};
+
+/**
  * @brief translation holds all the configuration needed to translate a line
  *
  * This holds the data populated in "translations" in the config file.

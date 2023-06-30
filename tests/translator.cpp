@@ -580,4 +580,234 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       CHECK(lines.at(0) == "Temperature(High_Temp)");
       CHECK(lines.at(1) == "Temperature(Very_High_Temp)");
    }
+
+   SECTION("check if a pair is matching")
+   {
+      file << "Alice said Hi to Bob\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "Bob replied Hi\n";
+      file.close();
+
+      translation tr_a2b;
+      tr_a2b.patterns = {"Alice", "Bob"};
+      tr_a2b.print = "A -> B: ${1}";
+      tr_a2b.variables = {{"said ", " to"}};
+      std::vector<std::string> print_match = {"A -> B"};
+      std::vector<std::string> pair_match = {"B -> A"};
+      std::vector<std::string> before_match = {"A -> B"};
+      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      translation tr_b2a;
+      tr_b2a.patterns = {"Bob replied"};
+      tr_b2a.print = "B -> A: Responded";
+
+      translation some;
+      some.patterns = {"some"};
+      some.print = "some";
+
+      translations.push_back(tr_a2b);
+      translations.push_back(tr_b2a);
+      translations.push_back(some);
+
+      config.set_pairs(pairs);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 4);
+      CHECK(lines.at(0) == "A -> B: Hi");
+      CHECK(lines.at(1) == "some");
+      CHECK(lines.at(2) == "some");
+      CHECK(lines.at(3) == "B -> A: Responded");
+   }
+
+   SECTION("check if a pair is matching in subsequent lines")
+   {
+      file << "Alice said Hi to Bob\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "Bob replied Hi\n";
+      file.close();
+
+      translation tr_a2b;
+      tr_a2b.patterns = {"Alice", "Bob"};
+      tr_a2b.print = "A -> B: ${1}";
+      tr_a2b.variables = {{"said ", " to"}};
+      std::vector<std::string> print_match = {"A -> B"};
+      std::vector<std::string> pair_match = {"B -> A"};
+      std::vector<std::string> before_match = {"A -> B"};
+      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      translation tr_b2a;
+      tr_b2a.patterns = {"Bob replied"};
+      tr_b2a.print = "B -> A: Responded";
+
+      translations.push_back(tr_a2b);
+      translations.push_back(tr_b2a);
+      config.set_pairs(pairs);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "A -> B: Hi");
+      CHECK(lines.at(1) == "B -> A: Responded");
+   }
+
+   SECTION("check if a pair is not matching")
+   {
+      file << "Alice said Hi to Bob\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "Alice said Hi to Bob\n";
+      file << "Bob replied Hi\n";
+      file.close();
+
+      translation tr_a2b;
+      tr_a2b.patterns = {"Alice", "Bob"};
+      tr_a2b.print = "A -> B: ${1}";
+      tr_a2b.variables = {{"said ", " to"}};
+      std::vector<std::string> print_match = {"A -> B"};
+      std::vector<std::string> pair_match = {"B -> A"};
+      std::vector<std::string> before_match = {"A -> B"};
+      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      translation tr_b2a;
+      tr_b2a.patterns = {"Bob replied"};
+      tr_b2a.print = "B -> A: Responded";
+
+      translations.push_back(tr_a2b);
+      translations.push_back(tr_b2a);
+      config.set_pairs(pairs);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 4);
+      CHECK(lines.at(0) == "A -> B: Hi");
+      CHECK(lines.at(1) == "error print");
+      CHECK(lines.at(2) == "A -> B: Hi");
+      CHECK(lines.at(3) == "B -> A: Responded");
+   }
+
+   SECTION("check if a pair is not matching multiple start with one end")
+   {
+      file << "Alice said Hi to Bob\n";
+      file << "Alice said Hi to Bob\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "Bob replied Hi\n";
+      file.close();
+
+      translation tr_a2b;
+      tr_a2b.patterns = {"Alice", "Bob"};
+      tr_a2b.print = "A -> B: ${1}";
+      tr_a2b.variables = {{"said ", " to"}};
+      std::vector<std::string> print_match = {"A -> B"};
+      std::vector<std::string> pair_match = {"B -> A"};
+      std::vector<std::string> before_match = {"A -> B"};
+      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      translation tr_b2a;
+      tr_b2a.patterns = {"Bob replied"};
+      tr_b2a.print = "B -> A: Responded";
+
+      translations.push_back(tr_a2b);
+      translations.push_back(tr_b2a);
+      config.set_pairs(pairs);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 4);
+      CHECK(lines.at(0) == "A -> B: Hi");
+      CHECK(lines.at(1) == "error print");
+      CHECK(lines.at(2) == "A -> B: Hi");
+      CHECK(lines.at(3) == "B -> A: Responded");
+   }
+
+   SECTION("check if a pair is not matching and terminator not matching")
+   {
+      file << "Alice said Hi to Bob\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "some line\n";
+      file.close();
+
+      translation tr_a2b;
+      tr_a2b.patterns = {"Alice", "Bob"};
+      tr_a2b.print = "A -> B: ${1}";
+      tr_a2b.variables = {{"said ", " to"}};
+      std::vector<std::string> print_match = {"A -> B"};
+      std::vector<std::string> pair_match = {"B -> A"};
+      std::vector<std::string> before_match = {"A -> B"};
+      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      translation tr_b2a;
+      tr_b2a.patterns = {"Bob replied"};
+      tr_b2a.print = "B -> A: Responded";
+
+      translations.push_back(tr_a2b);
+      translations.push_back(tr_b2a);
+      config.set_pairs(pairs);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "A -> B: Hi");
+      CHECK(lines.at(1) == "error print");
+   }
+
+   SECTION("check if a pair is not matching multiple start with no end")
+   {
+      file << "Alice said Hi to Bob\n";
+      file << "Alice said Hi to Bob\n";
+      file << "some line\n";
+      file << "some line\n";
+      file << "some line\n";
+      file.close();
+
+      translation tr_a2b;
+      tr_a2b.patterns = {"Alice", "Bob"};
+      tr_a2b.print = "A -> B: ${1}";
+      tr_a2b.variables = {{"said ", " to"}};
+      std::vector<std::string> print_match = {"A -> B"};
+      std::vector<std::string> pair_match = {"B -> A"};
+      std::vector<std::string> before_match = {"A -> B"};
+      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      translation tr_b2a;
+      tr_b2a.patterns = {"Bob replied"};
+      tr_b2a.print = "B -> A: Responded";
+
+      translations.push_back(tr_a2b);
+      translations.push_back(tr_b2a);
+      config.set_pairs(pairs);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 4);
+      CHECK(lines.at(0) == "A -> B: Hi");
+      CHECK(lines.at(1) == "error print");
+      CHECK(lines.at(2) == "A -> B: Hi");
+      CHECK(lines.at(3) == "error print");
+   }
 }

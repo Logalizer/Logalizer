@@ -4,6 +4,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <list>
 #include <numeric>
 #include <ranges>
 #include <regex>
@@ -295,6 +296,65 @@ void Translator::translate(std::string const& line)
    add_translation(std::move(translation), trcfg->duplicates);
 }
 
+bool Translator::matches_pattern(std::string const& line, std::vector<std::string>& patterns) const
+{
+   auto matches = [&line](auto const& pattern) { return static_cast<bool>(line.find(pattern) != std::string::npos); };
+   return std::all_of(cbegin(patterns), cend(patterns), matches);
+}
+
+void Translator::validate_pairs()
+{
+   std::list<std::string> translations_list;
+   std::copy(std::begin(translations), std::end(translations), std::back_inserter(translations_list));
+   auto validate_pair = [this, &translations_list](auto pair) {
+      bool matching_pair = false;
+      bool terminator = false;
+      static bool FOUND = true;
+      for (auto line = translations_list.begin(), end = translations_list.end(); line != end;) {
+         // print line does not match, continue to read
+         if (!matches_pattern(*line, pair.print_match)) {
+            ++line;
+            continue;
+         }
+         matching_pair = false;
+         terminator = false;
+         ++line;
+         // let's search for a match or terminator
+         while (terminator != FOUND && matching_pair != FOUND && line != end) {
+            if (matches_pattern(*line, pair.pair_match)) {
+               matching_pair = FOUND;
+               break;
+            }
+            if (matches_pattern(*line, pair.before_match)) {
+               terminator = FOUND;
+               break;
+            }
+            // no pair and terminator found, continue to search in next line
+            ++line;
+         }
+         // match found, continue next line
+         if (matching_pair == FOUND) {
+            ++line;
+            continue;
+         }
+         // terminator found without a match, insert error
+         if (terminator == FOUND) {
+            translations_list.insert(line, pair.error_print);
+            continue;
+         }
+      }
+      // End of file reached with no match and terminator
+      if (matching_pair != FOUND && terminator != FOUND) {
+         translations_list.push_back(pair.error_print);
+      }
+   };
+   for (const auto& pair : config_.get_pairs()) {
+      validate_pair(pair);
+   }
+   translations.clear();
+   std::copy(std::begin(translations_list), std::end(translations_list), std::back_inserter(translations));
+}
+
 void Translator::translate_file(std::string const& trace_file_name)
 {
    spdlog::debug("translate_file");
@@ -312,6 +372,7 @@ void Translator::translate_file(std::string const& trace_file_name)
       translate(line);
    }
    update_count();
+   validate_pairs();
    add_post_text();
    write_translation_file();
    translations.clear();

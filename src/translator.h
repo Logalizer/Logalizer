@@ -28,8 +28,10 @@ class Translator {
    [[nodiscard]] bool is_blacklisted(std::string const& line);
    auto get_matching_translator(std::string const& line);
    [[nodiscard]] bool is_deleted(std::string const& line) noexcept;
+   [[nodiscard]] bool matches_pattern(std::string const& line, std::vector<std::string>& patterns) const;
    void replace_words(std::string* line);
    void add_translation(std::string&& translation, Logalizer::Config::duplicates_t duplicates);
+   void validate_pairs();
    void update_count();
    void add_pre_text();
    void add_post_text();

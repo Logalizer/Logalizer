@@ -47,6 +47,11 @@ class ConfigParserMock : public Logalizer::Config::ConfigParser {
       ConfigParser::set_translations(std::move(translations));
    }
 
+   void set_pairs(std::vector<pair> pairs)
+   {
+      ConfigParser::set_pairs(std::move(pairs));
+   }
+
    void set_disabled_categories(std::vector<std::string> disabled_categories)
    {
       ConfigParser::set_disabled_categories(std::move(disabled_categories));
