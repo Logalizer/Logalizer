@@ -6,5 +6,6 @@
     "fast-cpp-csv-parser",
     "spdlog",
     "catch2"
-  ]
+  ],
+  "builtin-baseline": "94ce0dab56f4d8ba6bd631ba59ed682b02d45c46"
 }
