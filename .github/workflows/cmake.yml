@@ -97,10 +97,12 @@ jobs:
       # Pack install directory
       - name: Pack
         shell: bash
-        working-directory: build/ninja-multi-vcpkg/bin
+        working-directory: build/ninja-multi-vcpkg/
         run: |
+          cpack --config CPackConfig.cmake
           ls -laR
-          ${{ matrix.archiver }} ../logalizer_${{ matrix.os }}.7z .
+          ${{ matrix.archiver }} ../logalizer_${{ matrix.os }}.7z bin LogalizerApp-*
+          cp ../logalizer_${{ matrix.os }}.7z .
 
       - name: Upload
         uses: actions/upload-artifact@v1

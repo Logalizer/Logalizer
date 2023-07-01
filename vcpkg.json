@@ -7,5 +7,5 @@
     "spdlog",
     "catch2"
   ],
-  "builtin-baseline": "94ce0dab56f4d8ba6bd631ba59ed682b02d45c46"
+  "builtin-baseline": "c9f906558f9bb12ee9811d6edc98ec9255c6cda5"
 }
