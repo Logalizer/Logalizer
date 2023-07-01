@@ -12,6 +12,7 @@
       * [print](#print)
       * [variables](#variables)
       * [duplicates](#duplicates)
+      * [pairswith](#pairswith)
     * [disable_group](#disable_group)
     * [blacklist](#blacklist)
     * [auto_new_line](#auto_new_line)
@@ -254,6 +255,69 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
     }
   ]
 ```
+
+#### pairswith
+
+You can check if a print is having a matching pair. If a matching pair is not found you can print an error string. 
+
+If the TemperatureSensor sends the temperature to Controller, the Controller has to send if further to Display.
+This is achieved with the below configuration. 
+
+If an matching pair is not found the errorprint text is written to translation file. 
+
+The match has to be found
+ * before another instance of TemperatureSensor sending the temperature to Controller. 
+ * before end of file
+
+```json
+  "translations": [
+       {
+      "group": "Temperature_Sensing",
+      "patterns": ["temperature", "degree"],
+      "print": "TemperatureSensor -> Controller: Temperature",
+      "pairswith": [
+        {
+           "pairmatch": [
+             "Controller -> Display: Temperature"
+           ],
+           "errorprint": "note left: Controller did not inform Display"
+        }
+        ]
+    }
+  ]
+```
+
+If you want finer controll on matching, you can manually specify which line has to match with which line and before what. 
+
+In the below configuration, we want any communication from TemperatureSensor to Controller to have a further communication from Controller to Display before "== shutdown ==" is seen. 
+
+```json
+  "translations": [
+       {
+      "group": "Temperature_Sensing",
+      "patterns": ["temperature", "degree"],
+      "print": "TemperatureSensor -> Controller: Temperature",
+      "pairswith": [
+        {
+           "printmatch": [
+             "TemperatureSensor -> Controller"
+           ],
+           "pairmatch": [
+             "Controller -> Display"
+           ],
+           "before": [
+             "== shutdown =="
+           ],
+           "errorprint": "note left: Controller did not inform Display"
+        }
+        ]
+    }
+  ]
+```
+
+"TemperatureSensor -> Controller" line must match with "Controller -> Display" before "== shutdown =="
+
+Note: All of printmatch, pairmatch and before are arrays, so you can provie multiple patterns to match. 
 
 ----
 
