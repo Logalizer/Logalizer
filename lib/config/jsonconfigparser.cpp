@@ -43,16 +43,20 @@ std::vector<pair> JsonConfigParser::get_pair(json const& config, translation& tr
    std::ranges::for_each(jpairswith.items(), [&pairs, this, &tr](const auto& item) {
       pair new_pair;
       const json& jpairswithitem = item.value();
-      new_pair.print_match = jpairswithitem.at(TAG_PRINTMATCH).get<std::vector<std::string>>();
-      new_pair.pair_match = jpairswithitem.at(TAG_PAIRMATCH).get<std::vector<std::string>>();
-      new_pair.before_match = jpairswithitem.at(TAG_BEFORE).get<std::vector<std::string>>();
-      new_pair.error_print = get_value_or(jpairswithitem, TAG_ERROR_PRINT, std::string{});
-      if (new_pair.print_match.empty()) {
+      try {
+         new_pair.print_match = jpairswithitem.at(TAG_PRINTMATCH).get<std::vector<std::string>>();
+      }
+      catch (...) {
          new_pair.print_match.push_back(tr.print);
       }
-      if (new_pair.before_match.empty()) {
+      try {
+         new_pair.before_match = jpairswithitem.at(TAG_BEFORE).get<std::vector<std::string>>();
+      }
+      catch (...) {
          new_pair.before_match.push_back(tr.print);
       }
+      new_pair.pair_match = jpairswithitem.at(TAG_PAIRMATCH).get<std::vector<std::string>>();
+      new_pair.error_print = get_value_or(jpairswithitem, TAG_ERROR_PRINT, std::string{});
       pairs.emplace_back(new_pair);
    });
    return pairs;

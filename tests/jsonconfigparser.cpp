@@ -945,6 +945,55 @@ TEST_CASE("translations one translation and with pairswith")
    CHECK(pairs.at(0).error_print == "error print");
 }
 
+TEST_CASE("translations one translation and with default pairswith")
+{
+   auto j = R"( {
+    "translations": [
+     {
+       "group": "group_name",
+       "patterns": [
+         "pattern1",
+         "pattern2"
+       ],
+       "print": "print this message",
+       "variables": [
+         {
+           "startswith": "v1startswith",
+           "endswith": "v1endswith"
+         },
+         {
+           "startswith": "v2startswith",
+           "endswith": "v2endswith"
+         }
+       ],
+      "pairswith": [
+        {
+           "pairmatch": [
+             "pairmatch"
+           ],
+           "errorprint": "error print"
+        }
+        ],
+       "duplicates": "allowed"
+     }
+    ]
+  }
+  )"_json;
+   JsonConfigParser parser(j);
+   parser.load_translations();
+   const auto& trs = parser.get_translations();
+   CHECK(trs.size() == 1);
+   const auto& tr = trs.front();
+   CHECK(tr.patterns == std::vector<std::string>({"pattern1", "pattern2"}));
+   CHECK(tr.print == "print this message");
+   const auto& pairs = parser.get_pairs();
+   CHECK(pairs.size() == 1);
+   CHECK(pairs.at(0).print_match == std::vector<std::string>({"print this message"}));
+   CHECK(pairs.at(0).pair_match == std::vector<std::string>({"pairmatch"}));
+   CHECK(pairs.at(0).before_match == std::vector<std::string>({"print this message"}));
+   CHECK(pairs.at(0).error_print == "error print");
+}
+
 TEST_CASE("translations one translation and with many pairswith")
 {
    auto j = R"( {
