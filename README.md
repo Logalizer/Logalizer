@@ -2,6 +2,8 @@
 
 Helper to Visualize logs
 
+![Logo](docs/img/LogalizerLogo96.png)
+
 ## What you can do
 
 + Visualize logs
@@ -74,3 +76,20 @@ Example:
 ## Configuring Logalizer
 
 Refer [How To Configure](docs/How-To-Configure.md) topic.
+
+## Build
+
+1. [Install vcpkg](https://vcpkg.io/en/getting-started.html)
+
+2. Build
+
+```bash
+cmake --preset ninja-multi-vcpkg
+cmake --build --preset ninja-multi-vcpkg-release
+```
+
+3. Run Tests
+
+```bash
+ctest --preset ninja-multi-vcpkg-release --verbose
+```
