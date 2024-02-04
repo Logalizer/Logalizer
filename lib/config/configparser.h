@@ -31,11 +31,11 @@ static const std::string TAG_DUPLICATES_REMOVE = "remove";
 static const std::string TAG_DUPLICATES_REMOVE_CONTINUOUS = "remove_continuous";
 static const std::string TAG_DUPLICATES_COUNT = "count";
 static const std::string TAG_DUPLICATES_COUNT_CONTINUOUS = "count_continuous";
-static const std::string TAG_PAIRSWITH = "pairswith";
-static const std::string TAG_PRINTMATCH = "printmatch";
-static const std::string TAG_PAIRMATCH = "pairmatch";
+static const std::string TAG_PAIRSWITH = "pairs";
+static const std::string TAG_PRINTMATCH = "source";
+static const std::string TAG_PAIRMATCH = "pairswith";
 static const std::string TAG_BEFORE = "before";
-static const std::string TAG_ERROR_PRINT = "errorprint";
+static const std::string TAG_ERROR_PRINT = "error";
 
 static const std::string VAR_FILE_DIR_NAME = R"(\$\{fileDirname\})";
 static const std::string VAR_EXE_DIR_NAME = R"(\$\{exeDirname\})";
@@ -47,7 +47,7 @@ static const std::string VAR_FILE_BASE_WITH_EXTENSION = R"(\$\{fileBasename\})";
  *
  */
 class ConfigParser {
-  public:
+public:
    ConfigParser() = default;
    virtual ~ConfigParser() = default;
    ConfigParser(ConfigParser&&) = default;
@@ -125,7 +125,7 @@ class ConfigParser {
       return auto_new_line_;
    }
 
-  protected:
+protected:
    void set_translations(std::vector<translation> translations)
    {
       translations_ = std::move(translations);
@@ -201,7 +201,7 @@ class ConfigParser {
       auto_new_line_ = auto_new_line;
    }
 
-  private:
+private:
    virtual void update_path_variables() final;
    virtual void load_disabled_categories() = 0;
    virtual void load_translations() = 0;
