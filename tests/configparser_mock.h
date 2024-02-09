@@ -20,6 +20,9 @@ class ConfigParserMock : public Logalizer::Config::ConfigParser {
    void load_wrap_text() override
    {
    }
+   void load_pairs() override
+   {
+   }
    void load_blacklists() override
    {
    }

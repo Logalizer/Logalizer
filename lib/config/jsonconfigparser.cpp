@@ -36,32 +36,6 @@ std::vector<variable> JsonConfigParser::get_variables(json const& config)
    return variables;
 }
 
-std::vector<pair> JsonConfigParser::get_pair(json const& config, translation& tr)
-{
-   std::vector<pair> pairs;
-   const auto& jpairswith = get_value_or(config, TAG_PAIRSWITH, json{});
-   std::ranges::for_each(jpairswith.items(), [&pairs, this, &tr](const auto& item) {
-      pair new_pair;
-      const json& jpairswithitem = item.value();
-      try {
-         new_pair.print_match = jpairswithitem.at(TAG_PRINTMATCH).get<std::vector<std::string>>();
-      }
-      catch (...) {
-         new_pair.print_match.push_back(tr.print);
-      }
-      try {
-         new_pair.before_match = jpairswithitem.at(TAG_BEFORE).get<std::vector<std::string>>();
-      }
-      catch (...) {
-         new_pair.before_match.push_back(tr.print);
-      }
-      new_pair.pair_match = jpairswithitem.at(TAG_PAIRMATCH).get<std::vector<std::string>>();
-      new_pair.error_print = get_value_or(jpairswithitem, TAG_ERROR_PRINT, std::string{});
-      pairs.emplace_back(new_pair);
-   });
-   return pairs;
-}
-
 std::vector<translation> JsonConfigParser::load_translations(json const& config, std::string const& name)
 {
    std::vector<translation> translations;
@@ -99,9 +73,6 @@ std::vector<translation> JsonConfigParser::load_translations(json const& config,
       }
 
       tr.variables = get_variables(jtranslation);
-
-      auto new_pairs = get_pair(jtranslation, tr);
-      push_pairs(new_pairs);
 
       std::string dup = get_value_or(jtranslation, TAG_DUPLICATES, std::string{});
       tr.duplicates = get_duplicate_type(dup);
@@ -229,6 +200,27 @@ void JsonConfigParser::load_wrap_text()
    }
    try {
       set_wrap_text_post(config_.at(TAG_WRAPTEXT_POST).get<std::vector<std::string>>());
+   }
+   catch (...) {
+   }
+}
+
+void JsonConfigParser::load_pairs()
+{
+   try {
+      std::vector<pair> pairs;
+      for (const auto& item : config_.at(TAG_PAIRS).items()) {
+         // item {pair1, pair2, ...}
+
+         const json& jpair = item.value();
+         pair pr;
+         pr.source = jpair.at(TAG_PAIRSOURCE).get<std::string>();
+         pr.pairswith = jpair.at(TAG_PAIRSWITH).get<std::string>();
+         pr.before = get_value_or(jpair, TAG_PAIRBEFORE, pr.source);
+         pr.error = jpair.at(TAG_PAIRERROR).get<std::string>();
+         pairs.push_back(pr);
+      }
+      set_pairs(pairs);
    }
    catch (...) {
    }

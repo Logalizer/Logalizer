@@ -29,6 +29,7 @@ class Translator {
    auto get_matching_translator(std::string const& line);
    [[nodiscard]] bool is_deleted(std::string const& line) noexcept;
    [[nodiscard]] bool matches_pattern(std::string const& line, std::vector<std::string>& patterns) const;
+   [[nodiscard]] bool matches_pattern(std::string const& line, std::string& pattern) const;
    void replace_words(std::string* line);
    void add_translation(std::string&& translation, Logalizer::Config::duplicates_t duplicates);
    void validate_pairs();

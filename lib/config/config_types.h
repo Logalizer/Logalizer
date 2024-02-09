@@ -44,10 +44,10 @@ enum class duplicates_t {
  */
 
 struct pair {
-   std::vector<std::string> print_match;   /// Defines how to find a print line in translated file
-   std::vector<std::string> pair_match;    /// Defines how to find a matching pair line in translated file
-   std::vector<std::string> before_match;  /// Defines how to find a terminator before which the pair has to be found
-   std::string error_print;  /// If a matching pair is not found print this error_print before the terminator
+   std::string source;     /// Defines how to find a print line in translated file
+   std::string pairswith;  /// Defines how to find a matching pair line in translated file
+   std::string before;     /// Defines how to find a terminator before which the pair has to be found
+   std::string error;      /// If a matching pair is not found print this error_print before the terminator
 };
 
 /**

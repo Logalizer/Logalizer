@@ -63,6 +63,11 @@ void ConfigParser::load_configurations()
       throw;
    }
    try {
+      load_pairs();
+   }
+   catch (...) {
+   }
+   try {
       load_wrap_text();
    }
    catch (...) {

@@ -593,10 +593,9 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       tr_a2b.patterns = {"Alice", "Bob"};
       tr_a2b.print = "A -> B: ${1}";
       tr_a2b.variables = {{"said ", " to"}};
-      std::vector<std::string> print_match = {"A -> B"};
-      std::vector<std::string> pair_match = {"B -> A"};
-      std::vector<std::string> before_match = {"A -> B"};
-      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+      pair pr = {"A -> B", "B -> A", "A -> B", "error print"};
+      std::vector<pair> pairs;
+      pairs.push_back(pr);
 
       translation tr_b2a;
       tr_b2a.patterns = {"Bob replied"};
@@ -637,10 +636,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       tr_a2b.patterns = {"Alice", "Bob"};
       tr_a2b.print = "A -> B: ${1}";
       tr_a2b.variables = {{"said ", " to"}};
-      std::vector<std::string> print_match = {"A -> B"};
-      std::vector<std::string> pair_match = {"B -> A"};
-      std::vector<std::string> before_match = {"A -> B"};
-      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      pair pr = {"A -> B", "B -> A", "A -> B", "error print"};
+      std::vector<pair> pairs;
+      pairs.push_back(pr);
 
       translation tr_b2a;
       tr_b2a.patterns = {"Bob replied"};
@@ -674,10 +673,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       tr_a2b.patterns = {"Alice", "Bob"};
       tr_a2b.print = "A -> B: ${1}";
       tr_a2b.variables = {{"said ", " to"}};
-      std::vector<std::string> print_match = {"A -> B"};
-      std::vector<std::string> pair_match = {"B -> A"};
-      std::vector<std::string> before_match = {"A -> B"};
-      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      pair pr = {"A -> B", "B -> A", "A -> B", "error print"};
+      std::vector<pair> pairs;
+      pairs.push_back(pr);
 
       translation tr_b2a;
       tr_b2a.patterns = {"Bob replied"};
@@ -713,10 +712,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       tr_a2b.patterns = {"Alice", "Bob"};
       tr_a2b.print = "A -> B: ${1}";
       tr_a2b.variables = {{"said ", " to"}};
-      std::vector<std::string> print_match = {"A -> B"};
-      std::vector<std::string> pair_match = {"B -> A"};
-      std::vector<std::string> before_match = {"A -> B"};
-      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      pair pr = {"A -> B", "B -> A", "A -> B", "error print"};
+      std::vector<pair> pairs;
+      pairs.push_back(pr);
 
       translation tr_b2a;
       tr_b2a.patterns = {"Bob replied"};
@@ -750,10 +749,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       tr_a2b.patterns = {"Alice", "Bob"};
       tr_a2b.print = "A -> B: ${1}";
       tr_a2b.variables = {{"said ", " to"}};
-      std::vector<std::string> print_match = {"A -> B"};
-      std::vector<std::string> pair_match = {"B -> A"};
-      std::vector<std::string> before_match = {"A -> B"};
-      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      pair pr = {"A -> B", "B -> A", "A -> B", "error print"};
+      std::vector<pair> pairs;
+      pairs.push_back(pr);
 
       translation tr_b2a;
       tr_b2a.patterns = {"Bob replied"};
@@ -786,10 +785,10 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       tr_a2b.patterns = {"Alice", "Bob"};
       tr_a2b.print = "A -> B: ${1}";
       tr_a2b.variables = {{"said ", " to"}};
-      std::vector<std::string> print_match = {"A -> B"};
-      std::vector<std::string> pair_match = {"B -> A"};
-      std::vector<std::string> before_match = {"A -> B"};
-      std::vector<pair> pairs = {{print_match, pair_match, before_match, "error print"}};
+
+      pair pr = {"A -> B", "B -> A", "A -> B", "error print"};
+      std::vector<pair> pairs;
+      pairs.push_back(pr);
 
       translation tr_b2a;
       tr_b2a.patterns = {"Bob replied"};

@@ -75,7 +75,7 @@ Example:
 
 ## Configuring Logalizer
 
-Refer [How To Configure](docs/How-To-Configure.md) topic.
+Refer [How To Configure](docs/How-To-Configure.md).
 
 ## Build
 

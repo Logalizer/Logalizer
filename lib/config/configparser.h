@@ -31,11 +31,11 @@ static const std::string TAG_DUPLICATES_REMOVE = "remove";
 static const std::string TAG_DUPLICATES_REMOVE_CONTINUOUS = "remove_continuous";
 static const std::string TAG_DUPLICATES_COUNT = "count";
 static const std::string TAG_DUPLICATES_COUNT_CONTINUOUS = "count_continuous";
+static const std::string TAG_PAIRS = "pairs";
+static const std::string TAG_PAIRSOURCE = "source";
 static const std::string TAG_PAIRSWITH = "pairswith";
-static const std::string TAG_PRINTMATCH = "printmatch";
-static const std::string TAG_PAIRMATCH = "pairmatch";
-static const std::string TAG_BEFORE = "before";
-static const std::string TAG_ERROR_PRINT = "errorprint";
+static const std::string TAG_PAIRBEFORE = "before";
+static const std::string TAG_PAIRERROR = "error";
 
 static const std::string VAR_FILE_DIR_NAME = R"(\$\{fileDirname\})";
 static const std::string VAR_EXE_DIR_NAME = R"(\$\{exeDirname\})";
@@ -136,11 +136,6 @@ class ConfigParser {
       pairs_ = std::move(pairs);
    }
 
-   void push_pairs(std::vector<pair> pairs)
-   {
-      std::copy(std::begin(pairs), std::end(pairs), std::back_inserter(pairs_));
-   }
-
    void set_disabled_categories(std::vector<std::string> disabled_categories)
    {
       disabled_categories_ = std::move(disabled_categories);
@@ -213,6 +208,7 @@ class ConfigParser {
    virtual void load_translation_file() = 0;
    virtual void load_backup_file() = 0;
    virtual void load_auto_new_line() = 0;
+   virtual void load_pairs() = 0;
 
    std::vector<translation> translations_;
    std::vector<pair> pairs_;

@@ -15,6 +15,7 @@ class JsonConfigParser final : public ConfigParser {
    void load_disabled_categories() override;
    void load_translations() override;
    void load_wrap_text() override;
+   void load_pairs() override;
    void load_blacklists() override;
    void load_delete_lines() override;
    void load_replace_words() override;
@@ -33,6 +34,5 @@ class JsonConfigParser final : public ConfigParser {
    std::vector<variable> get_variables(nlohmann::json const& config);
    std::vector<translation> load_translations(nlohmann::json const& config, std::string const& name);
    std::vector<translation> load_translations_csv(std::string const& translations_csv_file);
-   std::vector<pair> get_pair(nlohmann::json const& config, translation&);
 };
 }  // namespace Logalizer::Config

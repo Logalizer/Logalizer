@@ -12,7 +12,7 @@
       * [print](#print)
       * [variables](#variables)
       * [duplicates](#duplicates)
-      * [pairswith](#pairswith)
+      * [pairs](#pairs)
     * [disable_group](#disable_group)
     * [blacklist](#blacklist)
     * [auto_new_line](#auto_new_line)
@@ -256,68 +256,43 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
   ]
 ```
 
-#### pairswith
+#### pairs
 
-You can check if a print is having a matching pair. If a matching pair is not found you can print an error string. 
+You can check if a print is having a matching pair. If a matching pair is not found you can print an error in translation file.
 
-If the TemperatureSensor sends the temperature to Controller, the Controller has to send if further to Display.
-This is achieved with the below configuration. 
+Let's assume an example condition. If TemperatureSensor sends temperature to Controller, Controller must send it further to Display. If the Controller fails to send it to Display it is an error.
 
-If an matching pair is not found the errorprint text is written to translation file. 
-
-The match has to be found
- * before another instance of TemperatureSensor sending the temperature to Controller. 
- * before end of file
+To confirm below configuration can be used.
 
 ```json
   "translations": [
-       {
+    {
       "group": "Temperature_Sensing",
       "patterns": ["temperature", "degree"],
       "print": "TemperatureSensor -> Controller: Temperature",
-      "pairswith": [
-        {
-           "pairmatch": [
-             "Controller -> Display: Temperature"
-           ],
-           "errorprint": "note left: Controller did not inform Display"
-        }
-        ]
-    }
+    },
+    "pairs": [
+      {
+        "source": "TemperatureSensor -> Controller: Temperature",
+        "pairswith": "Controller -> Display: Temperature",
+        "before": "TemperatureSensor -> Controller: Temperature",
+        "error": "note left: Controller did not inform Display"
+      }
+    ]
   ]
 ```
 
-If you want finer controll on matching, you can manually specify which line has to match with which line and before what. 
+When a `source` line comes `pairswith` line should also come. `pairswith` must come before `before` line comes.
 
-In the below configuration, we want any communication from TemperatureSensor to Controller to have a further communication from Controller to Display before "== shutdown ==" is seen. 
+`error` will be printed if,
 
-```json
-  "translations": [
-       {
-      "group": "Temperature_Sensing",
-      "patterns": ["temperature", "degree"],
-      "print": "TemperatureSensor -> Controller: Temperature",
-      "pairswith": [
-        {
-           "printmatch": [
-             "TemperatureSensor -> Controller"
-           ],
-           "pairmatch": [
-             "Controller -> Display"
-           ],
-           "before": [
-             "== shutdown =="
-           ],
-           "errorprint": "note left: Controller did not inform Display"
-        }
-        ]
-    }
-  ]
-```
+* `source` comes but `pariswith` does not come until end of file
+* `source` comes and `pariswith` comes, but `pariswith` comes late, i.e. it comes after `before`
 
-"TemperatureSensor -> Controller" line must match with "Controller -> Display" before "== shutdown =="
+As per the configuration, "note left: Controller did not inform Display" will be printed if,
 
-Note: All of printmatch, pairmatch and before are arrays, so you can provie multiple patterns to match. 
+* "Controller -> Display: Temperature" does not come until end of file
+* "Controller -> Display: Temperature" comes after "TemperatureSensor -> Controller: Temperature", i.e TemperatureSensor started to publish another value, but Controller failed to send the value to Display.
 
 ----
 

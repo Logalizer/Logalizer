@@ -302,57 +302,51 @@ bool Translator::matches_pattern(std::string const& line, std::vector<std::strin
    return std::all_of(cbegin(patterns), cend(patterns), matches);
 }
 
+bool Translator::matches_pattern(std::string const& line, std::string& pattern) const
+{
+   return static_cast<bool>(line.find(pattern) != std::string::npos);
+}
+
 void Translator::validate_pairs()
 {
-   std::list<std::string> translations_list;
-   std::copy(std::begin(translations), std::end(translations), std::back_inserter(translations_list));
-   auto validate_pair = [this, &translations_list](auto pair) {
-      bool matching_pair = false;
-      bool terminator = false;
-      static bool FOUND = true;
-      for (auto line = translations_list.begin(), end = translations_list.end(); line != end;) {
-         // print line does not match, continue to read
-         if (!matches_pattern(*line, pair.print_match)) {
-            ++line;
-            continue;
-         }
-         matching_pair = false;
-         terminator = false;
-         ++line;
-         // let's search for a match or terminator
-         while (terminator != FOUND && matching_pair != FOUND && line != end) {
-            if (matches_pattern(*line, pair.pair_match)) {
-               matching_pair = FOUND;
-               break;
-            }
-            if (matches_pattern(*line, pair.before_match)) {
-               terminator = FOUND;
-               break;
-            }
-            // no pair and terminator found, continue to search in next line
-            ++line;
-         }
-         // match found, continue next line
-         if (matching_pair == FOUND) {
-            ++line;
-            continue;
-         }
-         // terminator found without a match, insert error
-         if (terminator == FOUND) {
-            translations_list.insert(line, pair.error_print);
-            continue;
-         }
-      }
-      // End of file reached with no match and terminator
-      if (matching_pair != FOUND && terminator != FOUND) {
-         translations_list.push_back(pair.error_print);
-      }
-   };
+   std::vector<std::pair<int, std::string>> insertions;
    for (const auto& pair : config_.get_pairs()) {
-      validate_pair(pair);
+      size_t source = INT32_MAX;
+      size_t pairswith = INT32_MAX;
+      size_t before = INT32_MAX;
+      for (size_t i = 0; i < translations.size(); ++i) {
+         const std::string& line = translations[i];
+         // case 5: Source is already found and source is found again
+         if (source != INT32_MAX && line.find(pair.source) != std::string::npos) {
+            insertions.push_back({i, pair.error});
+            source = i;
+            continue;
+         }
+         // case 1: Source is found
+         else if (line.find(pair.source) != std::string::npos) {
+            source = i;
+            continue;
+         }
+         // case 2: Source is found, matching pair is found
+         else if (source != INT32_MAX && line.find(pair.pairswith) != std::string::npos) {
+            source = pairswith = INT32_MAX;
+            continue;
+         }
+         // case 3: Source is found, before is found before a matching pair is found
+         else if (source != INT32_MAX && line.find(pair.before) != std::string::npos) {
+            insertions.push_back({i, pair.error});
+            source = before = INT32_MAX;
+         }
+      }
+      // case 4: Source is found and pairswith is not found till EOF
+      if (source != INT32_MAX && pairswith == INT32_MAX && before == INT32_MAX) {
+         translations.push_back(pair.error);
+      }
    }
-   translations.clear();
-   std::copy(std::begin(translations_list), std::end(translations_list), std::back_inserter(translations));
+   // Insert all the errors
+   for (const auto& item : insertions) {
+      translations.insert(translations.begin() + item.first, item.second);
+   }
 }
 
 void Translator::translate_file(std::string const& trace_file_name)
