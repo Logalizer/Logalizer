@@ -146,6 +146,21 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       CHECK(read_line == "Temperature(45Celcius)");
    }
 
+   SECTION("Auto variable capture with endline as end point that captures till the end")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45Celcius";
+      file.close();
+      translation tr;
+      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.print = "Temperature";
+      tr.variables = {{"= ", "\n"}};
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      getline(read_file, read_line);
+      CHECK(read_line == "Temperature(45Celcius)");
+   }
    SECTION("Auto variable capture with no matching end point that captures till the end")
    {
       file << "[INFO]: TemperatureSensor: temperature = 45Celcius";
@@ -226,6 +241,21 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
       CHECK(read_line == "Temperature(45 - HighTemp)");
    }
 
+   SECTION("Variable capture with missing variables")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C, state = HighTemp;";
+      file.close();
+      translation tr;
+      tr.patterns = {"TemperatureSensor", "temperature"};
+      tr.print = "Temperature";
+      tr.variables = {{"xstate = x", "x;x"}, {"x= x", "xCx"}};
+      translations.push_back(tr);
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      getline(read_file, read_line);
+      CHECK(read_line == "Temperature( ,  )");
+   }
    SECTION("duplicates: default(allowed)")
    {
       file << "[INFO]: TemperatureSensor: temperature = 45C\n";
