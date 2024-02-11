@@ -23,17 +23,126 @@ import os
 import subprocess
 import argparse
 import pprint
+import ntpath
+import shutil
 
+def getAppPath():
+    """Get the path of the script / executable"""
+
+    # determine if application is a script file or frozen exe
+    if getattr(sys, 'frozen', False):
+        appPath = os.path.dirname(sys.executable)
+    elif __file__:
+        appPath = os.path.dirname(__file__)
+    return appPath
+
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+def replacePlaceholders(config, inputPath):
+        """
+        Replaces placeholders in a file path with actual values.
+
+        Args:
+            config (str): The input string containing placeholders.
+            inputPath (str): The input file path to extract values from.
+
+        Returns:
+            str: The modified file path with placeholders replaced.
+        """
+        # Extract relevant components from the input path
+        fileDirname = os.path.dirname(inputPath).replace("\\", "/")
+        fileBasename = path_leaf(inputPath)
+        fileBasenameNoExtension = os.path.splitext(fileBasename)[0]
+        exeDirname = getAppPath().replace("\\", "/")
+
+        # Replace placeholders
+        modifiedConfig = config.replace("${fileDirname}", fileDirname)
+        modifiedConfig = modifiedConfig.replace("${fileBasenameNoExtension}", fileBasenameNoExtension)
+        modifiedConfig = modifiedConfig.replace("${fileBasename}", fileBasename)
+        modifiedConfig = modifiedConfig.replace("${exeDirname}", exeDirname)
+
+        directory = f"{fileDirname}/{fileBasenameNoExtension}"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        return modifiedConfig
+
+def runProcess(command):
+    """Executes a command and returns the returncode"""
+
+    res = subprocess.Popen(command, stdout=subprocess.PIPE)
+    res.wait()
+    if res.returncode != 0:
+        print(
+            f"Command execution failed\n")
+    else:
+        print(f"Command executed successfully\n")
+    return res.returncode
+    
+def backupFile(inputFile, outputFile):
+    """Copies the contents of an inputFile to an outputFile.
+
+    Parameters:
+        inputFile: A string representing the path to the input file.
+        outputFile: A string representing the path to the output file.
+
+    Returns:
+        A boolean value indicating whether the backup was successful or not.
+    """
+    try:
+        # Open the input and output files
+       # Copy the source file to the destination file
+        shutil.copyfile(inputFile, outputFile)
+        # Return True if no exception occurred
+        return True
+    except Exception as e:
+        # Print the error message and return False
+        print(f"An error occurred while backing up {inputFile} to {outputFile}: {e}")
+        return False
+
+def removeAndReplace(inputFile, linesToRemove, wordsToReplace):
+    """
+    Removes a list of lines and replaces words with an input list of find and replace strings.
+
+    This function reads the inputFile line by line and writes to the outputFile, skipping the lines that match the linesToRemove list. It also replaces any word that matches the keys in the wordsToReplace dictionary with the corresponding values.
+
+    Parameters:
+        inputFile: A string representing the path to the input file.
+        outputFile: A string representing the path to the output file.
+        linesToRemove: A list of strings representing the lines to be removed.
+        wordsToReplace: A dictionary of strings mapping the words to be replaced with the replacement words.
+
+    Returns:
+        None
+    """
+    # Open the input and tmpFile files
+    tmpFile = f"{inputFile}.tmp"
+    with open(inputFile, "r") as inFile, open(tmpFile, "w") as outFile:
+        # Iterate over the lines in the input file
+        for line in inFile:
+            # Check if the line matches any of the lines to be removed
+            if line.strip() not in linesToRemove:
+                # Replace any word that matches the keys in the wordsToReplace dictionary
+                for word, replacement in wordsToReplace.items():
+                    line = line.replace(word, replacement)
+                # Write the modified line to the output file
+                outFile.write(line)
+    
+    # Discard the tmpFile
+    shutil.copyfile(tmpFile, inputFile)
+    os.remove(tmpFile)
 
 class Translator():
     """Translator takes a config and tranlates log file to plantuml diagram"""
 
-    def __init__(self, plantuml, configFile, groupConfig):
+    def __init__(self, configFile, logFile, groupConfig):
         self.conf: dict = {}
-        self.plantuml: str = plantuml
         try:
             with open(configFile, "r", encoding="utf8", errors='ignore') as f:
-                self.conf = json.load(f)
+                config = f.read()
+                updatedConfig = replacePlaceholders(config, logFile)
+                self.conf = json.loads(updatedConfig)
         except FileNotFoundError as ioerror:
             print(
                 f"{str(ioerror)}\n")
@@ -55,8 +164,8 @@ class Translator():
                     tr for tr in translations
                     if ("group" in tr
                         and tr["group"] not in self.conf["disable_group"])
-                    or ("enable" in tr
-                        and tr["enable"] == True)
+                    and ("enable" not in tr or ("enable" in tr
+                        and tr["enable"] == True))
                 ]
 
         # only one of disables or enables is considred, of which enables is given priority
@@ -130,20 +239,15 @@ class Translator():
         for item in reversed(insertions):
             translations.insert(item[0], item[1])
 
-    def generateDiagram(self, translationFile):
-        """Generate a plantuml diagram with an input file"""
 
-        # Use diagram size proportional to sequence file size
-        lines = open(translationFile).read().count("\n")
-        pumlSize = 32768 if lines < 100 else 65536
-        command = f'java -DPLANTUML_LIMIT_SIZE={pumlSize} -jar "{self.plantuml}" -tpng "{translationFile}"'
-        res = subprocess.Popen(command, stdout=subprocess.PIPE)
-        res.wait()
-        if res.returncode != 0:
-            print(
-                f"Diagram not generated due to errors in {translationFile}\n")
-        else:
-            print(f"Diagram generated: {translationFile}.png\n")
+    def executeCommands(self):
+        """Executes a list of commands from the configuration file."""
+
+        for command in self.conf["execute"]:
+            if runProcess(command) != 0: 
+                return
+
+
 
     def blacklisted(self, line):
         """If a line is blacklisted, do not consider for translation"""
@@ -274,22 +378,13 @@ class Translator():
 
     def translateFile(self, inputFile):
         """Translate input file to generate a diagram"""
+        backupFile(inputFile, self.conf["backup_file"])
+        removeAndReplace(inputFile, self.conf["delete_lines"], self.conf["replace_words"])
         translations = self.getTranslations(inputFile)
         self.checkPairs(translations)
-        translationFile = f"{inputFile}.txt"
+        translationFile = self.conf["translation_file"]
         self.writeTranslations(translations, translationFile)
-        self.generateDiagram(translationFile)
-
-
-def getAppPath():
-    """Get the path of the script / executable"""
-
-    # determine if application is a script file or frozen exe
-    if getattr(sys, 'frozen', False):
-        appPath = os.path.dirname(sys.executable)
-    elif __file__:
-        appPath = os.path.dirname(__file__)
-    return appPath
+        self.executeCommands()
 
 
 def getCmdArgs():
@@ -297,14 +392,12 @@ def getCmdArgs():
 
     argParser = argparse.ArgumentParser(
         prog='logalizer',
-        description='Converts logs to plantuml diagram',
+        description='Helper to visualize and understand logs.',
         epilog='')
     argParser.add_argument(
         "-c", "--config", help="Input json configuration", required=True)
     argParser.add_argument(
         "-f", "--file", help="Log file to convert", required=True)
-    argParser.add_argument(
-        "-p", "--plantuml", help="Path to plantuml to generate diagram")
     argParser.add_argument(
         "-e", "--enable", help="Comma seperated list of groups to enable")
     argParser.add_argument(
@@ -314,18 +407,8 @@ def getCmdArgs():
     return args
 
 
-def getPlantUMLPath(plantumlInputPath):
-    # default plantuml =./plantuml/plantuml.jar
-    if plantumlInputPath:
-        plantuml = plantumlInputPath
-    else:
-        plantuml = os.path.join(getAppPath(), "plantuml", "plantuml.jar")
-    return plantuml
-
-
 def main():
     args = getCmdArgs()
-    plantuml = getPlantUMLPath(args.plantuml)
     config = args.config
     log = args.file
     group = {}
@@ -335,8 +418,7 @@ def main():
                         for x in args.enable.split(',')] if enable else []
     group['disables'] = [x.strip()
                          for x in args.disable.split(',')] if disable else []
-
-    tr = Translator(plantuml, config, group)
+    tr = Translator(config, log, group)
     tr.translateFile(log)
 
 
