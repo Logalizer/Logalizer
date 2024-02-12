@@ -18,6 +18,8 @@ void ConfigParser::update_path_variables()
    std::for_each(begin(execute_commands_), end(execute_commands_), [&](auto &command) { update_path_vars(&command); });
    update_path_vars(&backup_file_);
    update_path_vars(&translation_file_);
+   std::for_each(begin(wrap_text_pre_), end(wrap_text_pre_), [&](auto &entry) { update_path_vars(&entry); });
+   std::for_each(begin(wrap_text_post_), end(wrap_text_post_), [&](auto &entry) { update_path_vars(&entry); });
 }
 
 bool ConfigParser::is_disabled(const std::string &category)
