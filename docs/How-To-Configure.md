@@ -1,32 +1,32 @@
 # How to Configure
 
-* [How to Configure](#how-to-configure)
-  * [Translation Configuration](#translation-configuration)
-    * [translations](#translations)
-      * [Visual Overview](#visual-overview)
-      * [Textual Overview](#textual-overview)
-      * [translations_csv](#translations_csv)
-      * [group](#group)
-      * [enable](#enable)
-      * [patterns](#patterns)
-      * [print](#print)
-      * [variables](#variables)
-      * [duplicates](#duplicates)
-      * [pairs](#pairs)
-    * [disable_group](#disable_group)
-    * [blacklist](#blacklist)
-    * [auto_new_line](#auto_new_line)
-    * [wrap_text_pre](#wrap_text_pre)
-    * [wrap_text_post](#wrap_text_post)
-  * [Output Configuration](#output-configuration)
-    * [translation_file](#translation_file)
-    * [backup_file](#backup_file)
-  * [Stripping Configuration](#stripping-configuration)
-    * [delete_lines](#delete_lines)
-    * [replace_words](#replace_words)
-  * [External Tools Configuration](#external-tools-configuration)
-    * [execute](#execute)
-  * [Special Variables for Path](#special-variables-for-path)
+- [How to Configure](#how-to-configure)
+  - [Translation Configuration](#translation-configuration)
+    - [translations](#translations)
+      - [Visual Overview](#visual-overview)
+      - [Textual Overview](#textual-overview)
+      - [translations_csv](#translations_csv)
+      - [group](#group)
+      - [enable](#enable)
+      - [patterns](#patterns)
+      - [print](#print)
+      - [variables](#variables)
+      - [duplicates](#duplicates)
+    - [disable_group](#disable_group)
+    - [blacklist](#blacklist)
+    - [auto_new_line](#auto_new_line)
+    - [wrap_text_pre](#wrap_text_pre)
+    - [wrap_text_post](#wrap_text_post)
+    - [pairs](#pairs)
+  - [Output Configuration](#output-configuration)
+    - [translation_file](#translation_file)
+    - [backup_file](#backup_file)
+  - [Stripping Configuration](#stripping-configuration)
+    - [delete_lines](#delete_lines)
+    - [replace_words](#replace_words)
+  - [External Tools Configuration](#external-tools-configuration)
+    - [execute](#execute)
+  - [Special Variables for Path](#special-variables-for-path)
 
 ## Translation Configuration
 
@@ -152,11 +152,11 @@ You can configure variables if you want to capture dynamically changing value fr
 
 To capture a variable we have to configure `starts_with` & `ends_with`.
 
-* `starts_with`: surrounding string with which the variable starts
-* `ends_with`: surrounding string with which the variable ends
+- `starts_with`: surrounding string with which the variable starts
+- `ends_with`: surrounding string with which the variable ends
 
 Let us try to capture the temperature in line "The temperature is `38` degrees".
-We try to use the text around 38, as `startswith` and `endswith`.  "The temperature `is`38`degrees`"
+We try to use the text around 38, as `startswith` and `endswith`. "The temperature `is`38`degrees`"
 
 ```json
 "print": "The temperature is ${1} degrees",
@@ -170,14 +170,14 @@ We try to use the text around 38, as `startswith` and `endswith`.  "The temperat
 
 For line "The temperature is 38 degrees" with the above config, `38` is captured in `${1}`
 
-* Automatic variable capture
+- Automatic variable capture
 
- ```log
- First Name: James; Last Name: Bond;
- ```
+```log
+First Name: James; Last Name: Bond;
+```
 
 ```json
-"print": "setName" 
+"print": "setName"
 "variables": [
   {
     "startswith": "First Name: "
@@ -194,7 +194,7 @@ The above config prints "setName(James, Bond)".
 
 Variables are captured in order and placed between parentheses separated by comma.
 
-* Manual variable capture
+- Manual variable capture
 
 ```json
 "print": "The temperature is ${1} degrees"
@@ -206,25 +206,25 @@ The above config prints "The temperature is 32 degrees"
 
 This is used to manage duplicate entries.
 
-* `allowed` allows duplicates in the translation file. This is the default behavior if not specified.
+- `allowed` allows duplicates in the translation file. This is the default behavior if not specified.
 
 ```json
 "duplicates": "allowed"
 ```
 
-* `remove_all` removes any duplicates in the translation and keeps only the first entry.
+- `remove_all` removes any duplicates in the translation and keeps only the first entry.
 
 ```json
 "duplicates": "remove_all"
 ```
 
-* `remove_continuous` removes duplicates entries that occurs continuously in the translation. Only continuous entries are removed.
+- `remove_continuous` removes duplicates entries that occurs continuously in the translation. Only continuous entries are removed.
 
 ```json
 "duplicates": "remove_continuous"
 ```
 
-* `count_all` is same as `remove_all`. It also counts the duplicates and updates `${count}` in the first entry.
+- `count_all` is same as `remove_all`. It also counts the duplicates and updates `${count}` in the first entry.
 
 This is used to count the number of errors by searching lines with [FATAL] & [ERROR] tokens
 
@@ -240,7 +240,7 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
   ]
 ```
 
-* `count_continuous` is same as `remove_continuous`. It also counts continuously occurring duplicates and updates `${count}` in the corresponding entry.
+- `count_continuous` is same as `remove_continuous`. It also counts continuously occurring duplicates and updates `${count}` in the corresponding entry.
 
 This is used to count the number of errors by searching lines with [FATAL] & [ERROR] tokens
 
@@ -256,45 +256,7 @@ This is used to count the number of errors by searching lines with [FATAL] & [ER
   ]
 ```
 
-#### pairs
-
-You can check if a print is having a matching pair. If a matching pair is not found you can print an error in translation file.
-
-Let's assume an example condition. If TemperatureSensor sends temperature to Controller, Controller must send it further to Display. If the Controller fails to send it to Display it is an error.
-
-To confirm below configuration can be used.
-
-```json
-  "translations": [
-    {
-      "group": "Temperature_Sensing",
-      "patterns": ["temperature", "degree"],
-      "print": "TemperatureSensor -> Controller: Temperature",
-    },
-    "pairs": [
-      {
-        "source": "TemperatureSensor -> Controller: Temperature",
-        "pairswith": "Controller -> Display: Temperature",
-        "before": "TemperatureSensor -> Controller: Temperature",
-        "error": "note left: Controller did not inform Display"
-      }
-    ]
-  ]
-```
-
-When a `source` line comes `pairswith` line should also come. `pairswith` must come before `before` line comes.
-
-`error` will be printed if,
-
-* `source` comes but `pariswith` does not come until end of file
-* `source` comes and `pariswith` comes, but `pariswith` comes late, i.e. it comes after `before`
-
-As per the configuration, "note left: Controller did not inform Display" will be printed if,
-
-* "Controller -> Display: Temperature" does not come until end of file
-* "Controller -> Display: Temperature" comes after "TemperatureSensor -> Controller: Temperature", i.e TemperatureSensor started to publish another value, but Controller failed to send the value to Display.
-
-----
+---
 
 ### disable_group
 
@@ -349,6 +311,44 @@ This defines a list of lines that will be added at the end of the translation fi
   "@enduml"
 ]
 ```
+
+### pairs
+
+You can check if a print is having a matching pair. If a matching pair is not found you can print an error in translation file.
+
+Let's assume an example condition. If TemperatureSensor sends temperature to Controller, Controller must send it further to Display. If the Controller fails to send it to Display it is an error.
+
+To confirm below configuration can be used.
+
+```json
+  "translations": [
+    {
+      "group": "Temperature_Sensing",
+      "patterns": ["temperature", "degree"],
+      "print": "TemperatureSensor -> Controller: Temperature",
+    },
+    "pairs": [
+      {
+        "source": "TemperatureSensor -> Controller: Temperature",
+        "pairswith": "Controller -> Display: Temperature",
+        "before": "TemperatureSensor -> Controller: Temperature",
+        "error": "note left: Controller did not inform Display"
+      }
+    ]
+  ]
+```
+
+When a `source` line comes `pairswith` line should also come. `pairswith` must come before `before` line comes.
+
+`error` will be printed if,
+
+- `source` comes but `pariswith` does not come until end of file
+- `source` comes and `pariswith` comes, but `pariswith` comes late, i.e. it comes after `before`
+
+As per the configuration, "note left: Controller did not inform Display" will be printed if,
+
+- "Controller -> Display: Temperature" does not come until end of file
+- "Controller -> Display: Temperature" comes after "TemperatureSensor -> Controller: Temperature", i.e TemperatureSensor started to publish another value, but Controller failed to send the value to Display.
 
 ## Output Configuration
 
@@ -430,13 +430,13 @@ This example configuration runs
 
 ## Special Variables for Path
 
-* `${exeDirname}` - The path to the directory in which the executable file (Logalizer) is present
-* `${fileDirname}` - The path to the directory in which the input file is present
-* `${fileBasename}` - The name of the input file
-* `${fileBasenameNoExtension}` - The name of the input file without extension
+- `${exeDirname}` - The path to the directory in which the executable file (Logalizer) is present
+- `${fileDirname}` - The path to the directory in which the input file is present
+- `${fileBasename}` - The name of the input file
+- `${fileBasenameNoExtension}` - The name of the input file without extension
 
 If the input file is "/tmp/logs/test.log",
 
-* `${fileDirname}` - "/tmp/logs"
-* `${fileBasename}` - "test.log"
-* `${fileBasenameNoExtension}` - "test"
+- `${fileDirname}` - "/tmp/logs"
+- `${fileBasename}` - "test.log"
+- `${fileBasenameNoExtension}` - "test"
