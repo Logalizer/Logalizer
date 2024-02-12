@@ -25,7 +25,6 @@ void printHelp()
                 "  logalizer -c <config> -f <log>\n"
                 "  logalizer -f <log>\n"
                 "  logalizer -h | --help\n"
-                "  logalizer --config-help\n"
                 "  logalizer --version\n"
                 "\n"
                 "Options:\n"
@@ -39,91 +38,6 @@ void printHelp()
                 "  logalizer -c config.json -f trace.log\n"
                 "  logalizer -f trace.log\n"
              << std::endl;
-}
-
-void printConfigHelp()
-{
-   std::cout <<
-       R"(
-{
-  "sample log": [
-    "2019-07-13 14:29:05:147 [Networking] DisplayClient say_hello: asking to connect to server",
-    "2017-07-13 14:29:06:239 [Test] note: Delete this line from the trace",
-    "2017-07-13 14:29:06:239 [Test] note: regex lines are very slow",
-    "2019-07-13 14:29:06:239 [Networking] DisplayClient server_response: Today's is a hot day with a max temperature of 37C possibly",
-    "2019-07-13 14:29:06:239 [Networking] DisplayClient start_routine: state=waiting, entering locked state"
-  ],
-  "translations": [
-    {
-      "group": "Networking",
-      "patterns": [
-        "say_hello"
-      ],
-      "print": "client -> server : sayHello",
-      "variables": []
-    },
-    {
-      "group": "Networking",
-      "patterns": [
-        "start_routine"
-      ],
-      "print": "client -> server : start_routine",
-      "variables": [
-        {
-          "startswith": "state=",
-          "endswith": ", entering"
-        }
-      ]
-    },
-    {
-      "group": "Networking",
-      "patterns": [
-        "Today",
-        "temperature"
-      ],
-      "print": "server -> client : Today is ${1} and ${2}",
-      "variables": [
-        {
-          "startswith": "is a ",
-          "endswith": " day"
-        },
-        {
-          "startswith": "of ",
-          "endswith": " possibly"
-        }
-      ]
-    }
-  ],
-  "disable_group": [
-    "exclude a particular group of translations"
-  ],
-  "wrap_text_pre": [
-    "@startuml",
-    "skinparam dpi 300"
-  ],
-  "wrap_text_post": [
-    "== Done ==",
-    "@enduml"
-  ],
-  "blacklist": [
-    "Do not translate this line",
-    "and this line too"
-  ],
-  "delete_lines": [
-    "Delete this line from the trace",
-    "2017.* regex lines are very slow"
-  ],
-  "replace_words": {
-    "search": "replace"
-  },
-  "execute": [
-    "java -DPLANTUML_LIMIT_SIZE=32768 -jar plantuml.jar \"${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt\""
-  ],
-  "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}.original",
-  "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt",
-  "auto_new_line": true
-}
-)";
 }
 
 using namespace Logalizer::Config;
@@ -162,10 +76,6 @@ CMD_Args parse_cmd_line(const std::vector<std::string_view>& args)
       }
       else if (*it == "--version") {
          std::cout << "Logalizer v" << LOGALIZER_VERSION_MAJOR << "." << LOGALIZER_VERSION_MINOR << std::endl;
-         exit(0);
-      }
-      else if (*it == "--config-help") {
-         printConfigHelp();
          exit(0);
       }
    }
