@@ -4,18 +4,19 @@
 #include "config_types.h"
 
 using namespace Logalizer::Config;
-using nlohmann::json;
+// using nlohmann::json;
+using json = nlohmann::ordered_json;
 
 TEST_CASE("wrap_text_pre available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "wrap_text_pre": [
       "pre1",
       "pre2"
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_wrap_text();
@@ -24,7 +25,7 @@ TEST_CASE("wrap_text_pre available")
 
 TEST_CASE("wrap_text_pre unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
 
    JsonConfigParser parser(j);
    parser.load_wrap_text();
@@ -33,14 +34,14 @@ TEST_CASE("wrap_text_pre unavailable")
 
 TEST_CASE("wrap_text_post")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "wrap_text_post": [
       "post1",
       "post2"
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_wrap_text();
@@ -49,7 +50,7 @@ TEST_CASE("wrap_text_post")
 
 TEST_CASE("wrap_text_post unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
 
    JsonConfigParser parser(j);
    parser.load_wrap_text();
@@ -58,14 +59,14 @@ TEST_CASE("wrap_text_post unavailable")
 
 TEST_CASE("blacklists available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "blacklist": [
       "bl1",
       "bl2"
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_blacklists();
@@ -74,7 +75,7 @@ TEST_CASE("blacklists available")
 
 TEST_CASE("blacklists unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
 
    JsonConfigParser parser(j);
    parser.load_blacklists();
@@ -83,7 +84,7 @@ TEST_CASE("blacklists unavailable")
 
 TEST_CASE("delete_lines available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "delete_lines": [
       "dl1",
@@ -91,7 +92,7 @@ TEST_CASE("delete_lines available")
       "dl_regex.*"
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_delete_lines();
@@ -101,7 +102,7 @@ TEST_CASE("delete_lines available")
 
 TEST_CASE("delete_lines unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_delete_lines());
    CHECK(parser.get_delete_lines() == std::vector<std::string>({}));
@@ -110,14 +111,14 @@ TEST_CASE("delete_lines unavailable")
 
 TEST_CASE("replace_words available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "replace_words": {
       "old1": "new1",
       "old2": "new2"
     }
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_replace_words();
@@ -131,7 +132,7 @@ TEST_CASE("replace_words available")
 
 TEST_CASE("replace_words unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_replace_words());
    CHECK(parser.get_replace_words().empty());
@@ -139,14 +140,14 @@ TEST_CASE("replace_words unavailable")
 
 TEST_CASE("execute available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "execute": [
       "cmd1",
       "cmd2"
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_execute();
@@ -155,7 +156,7 @@ TEST_CASE("execute available")
 
 TEST_CASE("execute unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_execute());
    CHECK(parser.get_execute_commands() == std::vector<std::string>({}));
@@ -163,14 +164,14 @@ TEST_CASE("execute unavailable")
 
 TEST_CASE("disable_group available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "disable_group": [
       "d1",
       "d2"
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_disabled_categories();
@@ -179,7 +180,7 @@ TEST_CASE("disable_group available")
 
 TEST_CASE("disable_group unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_disabled_categories());
    CHECK(parser.get_disabled_categories() == std::vector<std::string>({}));
@@ -187,11 +188,11 @@ TEST_CASE("disable_group unavailable")
 
 TEST_CASE("translation_file available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_translation_file();
@@ -200,7 +201,7 @@ TEST_CASE("translation_file available")
 
 TEST_CASE("translation_file unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_translation_file());
    CHECK(parser.get_translation_file().empty());
@@ -208,11 +209,11 @@ TEST_CASE("translation_file unavailable")
 
 TEST_CASE("backup_file available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_backup.txt"
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_backup_file();
@@ -221,7 +222,7 @@ TEST_CASE("backup_file available")
 
 TEST_CASE("backup_file unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_backup_file());
    CHECK(parser.get_backup_file().empty());
@@ -229,20 +230,20 @@ TEST_CASE("backup_file unavailable")
 
 TEST_CASE("auto_new_line available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "auto_new_line": false
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_auto_new_line();
    CHECK(parser.get_auto_new_line() == false);
-   j = R"(
+   j = json::parse(R"(
   {
     "auto_new_line": true
   }
-  )"_json;
+  )");
 
    JsonConfigParser parsertrue(j);
    parsertrue.load_auto_new_line();
@@ -251,7 +252,7 @@ TEST_CASE("auto_new_line available")
 
 TEST_CASE("auto_new_line unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_auto_new_line());
    CHECK(parser.get_auto_new_line() == true);
@@ -259,11 +260,11 @@ TEST_CASE("auto_new_line unavailable")
 
 TEST_CASE("translations_csv available")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -290,11 +291,11 @@ TEST_CASE("translations_csv available")
 
 TEST_CASE("translations_csv available with double quote within double quote")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -321,11 +322,11 @@ TEST_CASE("translations_csv available with double quote within double quote")
 
 TEST_CASE("translations_csv available with comma within double quote")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -352,11 +353,11 @@ TEST_CASE("translations_csv available with comma within double quote")
 
 TEST_CASE("translations_csv available with all fields")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -386,11 +387,11 @@ TEST_CASE("translations_csv available with all fields")
 
 TEST_CASE("translations_csv without patterns")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -408,11 +409,11 @@ TEST_CASE("translations_csv without patterns")
 
 TEST_CASE("translations_csv without variables")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -436,11 +437,11 @@ TEST_CASE("translations_csv without variables")
 
 TEST_CASE("translations_csv disabled entry")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv"
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -464,7 +465,7 @@ TEST_CASE("translations_csv disabled entry")
 
 TEST_CASE("translations_csv both translations and translations_csv")
 {
-   auto j = R"(
+   auto j = json::parse(R"(
   {
     "translations_csv": "config_translations.csv",
     "translations": [
@@ -489,7 +490,7 @@ TEST_CASE("translations_csv both translations and translations_csv")
      }
     ]
   }
-  )"_json;
+  )");
 
    std::ofstream csv("config_translations.csv");
    csv << "enable,group,print,duplicates,pattern1,pattern2,pattern3,variable1_starts_with,variable1_ends_with,"
@@ -507,7 +508,7 @@ TEST_CASE("translations_csv both translations and translations_csv")
 
 TEST_CASE("translations one translation available")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "group": "group_name",
@@ -530,7 +531,7 @@ TEST_CASE("translations one translation available")
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_translations();
@@ -550,7 +551,7 @@ TEST_CASE("translations one translation available")
 
 TEST_CASE("translations group not mandatory")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "patterns": [
@@ -560,7 +561,7 @@ TEST_CASE("translations group not mandatory")
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_translations();
@@ -572,14 +573,14 @@ TEST_CASE("translations group not mandatory")
 
 TEST_CASE("translations patterns is mandatory")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "print": "print this message"
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_translations();
@@ -589,7 +590,7 @@ TEST_CASE("translations patterns is mandatory")
 
 TEST_CASE("translations print is mandatory")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "patterns": [
@@ -598,7 +599,7 @@ TEST_CASE("translations print is mandatory")
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_translations();
@@ -608,7 +609,7 @@ TEST_CASE("translations print is mandatory")
 
 TEST_CASE("translations indivudually disabled")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
    "disable_group" : [],
     "translations": [
      {
@@ -636,7 +637,7 @@ TEST_CASE("translations indivudually disabled")
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_disabled_categories();
@@ -649,7 +650,7 @@ TEST_CASE("translations indivudually disabled")
 
 TEST_CASE("translations group disabled")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
    "disable_group" : ["c1"],
     "translations": [
      {
@@ -675,7 +676,7 @@ TEST_CASE("translations group disabled")
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_disabled_categories();
@@ -688,7 +689,7 @@ TEST_CASE("translations group disabled")
 
 TEST_CASE("translations duplicates types")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "patterns": [
@@ -733,7 +734,7 @@ TEST_CASE("translations duplicates types")
      }
     ]
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_translations();
@@ -749,7 +750,7 @@ TEST_CASE("translations duplicates types")
 
 TEST_CASE("read full configuration")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "group": "group_name",
@@ -799,7 +800,7 @@ TEST_CASE("read full configuration")
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt",
     "backup_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_backup.txt"
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_configurations();
@@ -830,7 +831,7 @@ TEST_CASE("read full configuration")
 
 TEST_CASE("read minimal mandatory configuration")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "group": "group_name",
@@ -854,7 +855,7 @@ TEST_CASE("read minimal mandatory configuration")
     ],
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
   }
-  )"_json;
+  )");
 
    JsonConfigParser parser(j);
    parser.load_configurations();
@@ -885,14 +886,14 @@ TEST_CASE("read minimal mandatory configuration")
 
 TEST_CASE("translations unavailable")
 {
-   auto j = R"( { })"_json;
+   auto j = json::parse(R"( { })");
    JsonConfigParser parser(j);
    CHECK_THROWS(parser.load_translations());
 }
 
 TEST_CASE("translations one translation and with pairswith")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "group": "group_name",
@@ -924,7 +925,7 @@ TEST_CASE("translations one translation and with pairswith")
     ],
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
   }
-  )"_json;
+  )");
    JsonConfigParser parser(j);
    parser.load_configurations();
    const auto& trs = parser.get_translations();
@@ -942,7 +943,7 @@ TEST_CASE("translations one translation and with pairswith")
 
 TEST_CASE("translations one translation and with many pairswith")
 {
-   auto j = R"( {
+   auto j = json::parse(R"( {
     "translations": [
      {
        "group": "group_name",
@@ -980,7 +981,7 @@ TEST_CASE("translations one translation and with many pairswith")
     ],
     "translation_file": "${fileDirname}/${fileBasenameNoExtension}/${fileBasename}_seq.txt"
   }
-  )"_json;
+  )");
    JsonConfigParser parser(j);
    parser.load_configurations();
    const auto& trs = parser.get_translations();

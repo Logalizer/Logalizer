@@ -10,8 +10,6 @@
 
 namespace Logalizer::Config {
 
-using json = nlohmann::json;
-
 /*
  * config.at() throws an exception if tag not found
  * ConfigParser will decide which exceptions to ignore
@@ -151,14 +149,14 @@ JsonConfigParser::JsonConfigParser(std::string config_file) : config_file_{std::
    }
 }
 
-JsonConfigParser::JsonConfigParser(nlohmann::json config) : config_(std::move(config))
+JsonConfigParser::JsonConfigParser(json config) : config_(std::move(config))
 {
 }
 
 void JsonConfigParser::read_config_file()
 {
    std::ifstream file(config_file_);
-   file >> config_;
+   config_ = json::parse(file);
    std::cout << "configuration loaded from " << config_file_ << '\n';
 }
 

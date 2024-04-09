@@ -584,14 +584,74 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
    SECTION("replace_words in input file")
    {
       file << "[INFO]: TemperatureSensor: temperature = 45C state = 3\n";
-      file << "[INFO]: TemperatureSensor: temperature = 59C state = 4\n";
+      file << "[INFO]: TemperatureSensor: temperature = 59C state = 30\n";
       file.close();
       translation tr;
       tr.patterns = {"Sensor"};
       tr.print = "Temperature";
       tr.variables = {{"state = ", ""}};
       translations.push_back(tr);
-      config.set_replace_words({{"state = 3", "state = High_Temp"}, {"state = 4", "state = Very_High_Temp"}});
+      config.set_replace_words({{"state = 30", "state = Very_High_Temp"}, {"state = 3", "state = High_Temp"}});
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      std::ifstream in_file_read(in_file);
+      for (std::string read_line; getline(in_file_read, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "[INFO]: TemperatureSensor: temperature = 45C state = High_Temp");
+      CHECK(lines.at(1) == "[INFO]: TemperatureSensor: temperature = 59C state = Very_High_Temp");
+      lines.clear();
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "Temperature(High_Temp)");
+      CHECK(lines.at(1) == "Temperature(Very_High_Temp)");
+   }
+
+   SECTION("replace_words in input file with order check")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C state = 1\n";
+      file << "[INFO]: TemperatureSensor: temperature = 59C state = 10\n";
+      file.close();
+      translation tr;
+      tr.patterns = {"Sensor"};
+      tr.print = "Temperature";
+      tr.variables = {{"state = ", ""}};
+      translations.push_back(tr);
+      config.set_replace_words({{"state = 1", "state = Very_High_Temp"}, {"state = 10", "state = High_Temp"}});
+      config.set_translations(translations);
+      tor.translate_file(in_file);
+      std::ifstream read_file(tr_file);
+      std::ifstream in_file_read(in_file);
+      for (std::string read_line; getline(in_file_read, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "[INFO]: TemperatureSensor: temperature = 45C state = Very_High_Temp");
+      CHECK(lines.at(1) == "[INFO]: TemperatureSensor: temperature = 59C state = Very_High_Temp0");
+      lines.clear();
+      for (std::string read_line; getline(read_file, read_line);) {
+         lines.push_back(read_line);
+      }
+      CHECK(lines.size() == 2);
+      CHECK(lines.at(0) == "Temperature(Very_High_Temp)");
+      CHECK(lines.at(1) == "Temperature(Very_High_Temp0)");
+   }
+
+   SECTION("replace_words in input file with order check improved config")
+   {
+      file << "[INFO]: TemperatureSensor: temperature = 45C state = 1\n";
+      file << "[INFO]: TemperatureSensor: temperature = 59C state = 10\n";
+      file.close();
+      translation tr;
+      tr.patterns = {"Sensor"};
+      tr.print = "Temperature";
+      tr.variables = {{"state = ", ""}};
+      translations.push_back(tr);
+      config.set_replace_words({{"state = 10", "state = Very_High_Temp"}, {"state = 1", "state = High_Temp"}});
       config.set_translations(translations);
       tor.translate_file(in_file);
       std::ifstream read_file(tr_file);

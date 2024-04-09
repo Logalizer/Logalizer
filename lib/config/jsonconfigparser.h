@@ -8,10 +8,12 @@ namespace Logalizer::Config {
  * @brief Parses Json configuration
  *
  */
+using json = nlohmann::ordered_json;
+
 class JsonConfigParser final : public ConfigParser {
   public:
    explicit JsonConfigParser(std::string config_file = "config.json");
-   explicit JsonConfigParser(nlohmann::json config);
+   explicit JsonConfigParser(json config);
    void load_disabled_categories() override;
    void load_translations() override;
    void load_wrap_text() override;
@@ -27,12 +29,12 @@ class JsonConfigParser final : public ConfigParser {
    void read_config_file() override;
 
   private:
-   nlohmann::json config_;
+   json config_;
    std::string config_file_;
    template <class T>
-   T get_value_or(nlohmann::json const& config, std::string const& name, T value);
-   std::vector<variable> get_variables(nlohmann::json const& config);
-   std::vector<translation> load_translations(nlohmann::json const& config, std::string const& name);
+   T get_value_or(json const& config, std::string const& name, T value);
+   std::vector<variable> get_variables(json const& config);
+   std::vector<translation> load_translations(json const& config, std::string const& name);
    std::vector<translation> load_translations_csv(std::string const& translations_csv_file);
 };
 }  // namespace Logalizer::Config
