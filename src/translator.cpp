@@ -357,7 +357,7 @@ void Translator::translate_file(std::string const& trace_file_name)
    std::ofstream trimmed_file(trim_file_name);
    add_pre_text();
 
-   for (std::string line; getline(trace_file, line);) {
+   for (std::string line; getline(trace_file, line, '\n');) {
       if (is_deleted(line)) {
          continue;
       }
