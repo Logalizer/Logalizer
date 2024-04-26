@@ -358,6 +358,7 @@ void Translator::translate_file(std::string const& trace_file_name)
    add_pre_text();
 
    for (std::string line; getline(trace_file, line, '\n');) {
+      if (line.back() == '\r') line.pop_back();
       if (is_deleted(line)) {
          continue;
       }

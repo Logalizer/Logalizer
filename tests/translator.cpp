@@ -552,11 +552,11 @@ TEST_CASE("translate basic patterns and print with manual variable capture")
 
    SECTION("delete_lines in input file")
    {
-      file << "[INFO]: TemperatureSensor: temperature = 45C\n";
-      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
-      file << "[INFO]: TemperatureSensor: temperature = 49C\n";
-      file << "[INFO]: PressureSensor: pressure = 14psi\n";
-      file << "[INFO]: HumiditySensor: humidity = 20%\n";
+      file << "[INFO]: TemperatureSensor: temperature = 45C\r\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\r\n";
+      file << "[INFO]: TemperatureSensor: temperature = 49C\r\n";
+      file << "[INFO]: PressureSensor: pressure = 14psi\r\n";
+      file << "[INFO]: HumiditySensor: humidity = 20%\r\n";
       file.close();
       translation tr;
       tr.patterns = {"Sensor"};
