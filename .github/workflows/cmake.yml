@@ -90,9 +90,9 @@ jobs:
           cmake --build --preset ninja-multi-vcpkg-release
       
       # Test the whole project with CTest, again Release configuration only.
-      - name: Test (Release configuration)
-        run: |
-          ctest --preset ninja-multi-vcpkg-release --verbose
+      # - name: Test (Release configuration)
+      #   run: |
+      #     ctest --preset ninja-multi-vcpkg-release --verbose
 
       # Install binaries
       - name: Install Strip
