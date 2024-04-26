@@ -352,7 +352,7 @@ void Translator::validate_pairs()
 void Translator::translate_file(std::string const& trace_file_name)
 {
    spdlog::debug("translate_file");
-   std::ifstream trace_file(trace_file_name);
+   std::ifstream trace_file(trace_file_name, std::ios::binary);
    const std::string trim_file_name = trace_file_name + ".trim.log";
    std::ofstream trimmed_file(trim_file_name);
    add_pre_text();
